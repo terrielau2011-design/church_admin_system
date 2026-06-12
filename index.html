@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教會行政管理系統 v1.0.0 — 第一階段原型</title>
+<style>
+/* ===== Tailwind-lite Reset & Utility ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --c-bg:#f8fafc;--c-surface:#fff;--c-border:#e2e8f0;--c-text:#1e293b;
+  --c-muted:#64748b;--c-primary:#6366f1;--c-primary-hover:#4f46e5;
+  --c-success:#10b981;--c-warning:#f59e0b;--c-danger:#ef4444;
+  --c-info:#3b82f6;--radius:10px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 25px rgba(0,0,0,.1);
+}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.6;min-height:100vh}
+/* Flex/Grid helpers */
+.flex{display:flex}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}
+.items-center{align-items:center}.justify-between{justify-content:space-between}
+.justify-center{justify-content:center}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}
+.grid{display:grid}.grid-cols-2{grid-template-columns:repeat(2,1fr)}.grid-cols-3{grid-template-columns:repeat(3,1fr)}.grid-cols-4{grid-template-columns:repeat(4,1fr)}
+/* Spacing */
+.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-6{padding:1.5rem}
+.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}
+.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}
+.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}
+.mt-2{margin-top:.5rem}.mt-4{margin-top:1rem}.mr-2{margin-right:.5rem}
+/* Typography */
+.text-sm{font-size:.875rem}.text-xs{font-size:.75rem}.text-lg{font-size:1.125rem}.text-xl{font-size:1.25rem}.text-2xl{font-size:1.5rem}.text-3xl{font-size:1.875rem}
+.font-bold{font-weight:700}.font-semibold{font-weight:600}.font-medium{font-weight:500}
+.text-center{text-align:center}.text-right{text-align:right}
+.text-muted{color:var(--c-muted)}.text-primary{color:var(--c-primary)}
+.text-success{color:var(--c-success)}.text-danger{color:var(--c-danger)}.text-warning{color:var(--c-warning)}
+/* Components */
+.card{background:var(--c-surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.25rem}
+.card-header{border-bottom:1px solid var(--c-border);padding-bottom:.75rem;margin-bottom:1rem}
+.btn{padding:.5rem 1rem;border-radius:8px;border:none;cursor:pointer;font-size:.875rem;font-weight:500;transition:all .15s;display:inline-flex;align-items:center;gap:.375rem}
+.btn:hover{opacity:.9;transform:translateY(-1px)}
+.btn-primary{background:var(--c-primary);color:#fff}
+.btn-success{background:var(--c-success);color:#fff}
+.btn-danger{background:var(--c-danger);color:#fff}
+.btn-warning{background:var(--c-warning);color:#fff}
+.btn-outline{background:transparent;border:1.5px solid var(--c-border);color:var(--c-text)}
+.btn-outline:hover{background:var(--c-bg)}
+.btn-sm{padding:.3rem .65rem;font-size:.8rem}
+.btn-lg{padding:.65rem 1.5rem;font-size:1rem}
+.btn-block{width:100%;justify-content:center}
+.badge{display:inline-block;padding:.15rem .55rem;border-radius:20px;font-size:.75rem;font-weight:600}
+.badge-success{background:#d1fae5;color:#065f46}
+.badge-warning{background:#fef3c7;color:#92400e}
+.badge-danger{background:#fee2e2;color:#991b1b}
+.badge-info{background:#dbeafe;color:#1e40af}
+.badge-muted{background:#f1f5f9;color:var(--c-muted)}
+.input{width:100%;padding:.55rem .75rem;border:1.5px solid var(--c-border);border-radius:8px;font-size:.875rem;transition:border .15s}
+.input:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.select{width:100%;padding:.55rem .75rem;border:1.5px solid var(--c-border);border-radius:8px;font-size:.875rem;background:var(--c-surface);cursor:pointer}
+.textarea{width:100%;padding:.55rem .75rem;border:1.5px solid var(--c-border);border-radius:8px;font-size:.875rem;resize:vertical;min-height:70px}
+.label{display:block;font-size:.8rem;font-weight:600;margin-bottom:.25rem;color:var(--c-muted);text-transform:uppercase;letter-spacing:.03em}
+/* Layout */
+.container{max-width:1280px;margin:0 auto;padding:0 1rem}
+.topbar{background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:.75rem 1.5rem;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
+.content{padding:1.5rem}
+.tab-nav{display:flex;gap:.25rem;border-bottom:2px solid var(--c-border);margin-bottom:1.5rem}
+.tab-btn{padding:.6rem 1.2rem;border:none;background:transparent;cursor:pointer;font-size:.875rem;font-weight:500;color:var(--c-muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab-btn:hover{color:var(--c-text)}
+.tab-btn.active{color:var(--c-primary);border-bottom-color:var(--c-primary)}
+/* Table */
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:.65rem .75rem;text-align:left;border-bottom:1px solid var(--c-border);font-size:.875rem}
+.table th{font-weight:600;color:var(--c-muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
+.table tbody tr:hover{background:#f8fafc}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100;animation:fadeIn .15s}
+.modal{background:var(--c-surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:1.5rem;width:90%;max-width:560px;max-height:85vh;overflow-y:auto;animation:slideUp .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* Calendar */
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.calendar-header{text-align:center;font-size:.75rem;font-weight:600;color:var(--c-muted);padding:.4rem 0}
+.calendar-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;font-size:.8rem;transition:all .12s;position:relative}
+.calendar-day:hover{background:#eef2ff}
+.calendar-day.today{background:var(--c-primary);color:#fff;font-weight:700}
+.calendar-day.has-event::after{content:'';position:absolute;bottom:4px;width:5px;height:5px;border-radius:50%;background:var(--c-primary)}
+.calendar-day.today.has-event::after{background:#fff}
+.calendar-day.other-month{color:#cbd5e1}
+/* Toast */
+.toast-container{position:fixed;top:1rem;right:1rem;z-index:200;display:flex;flex-direction:column;gap:.5rem}
+.toast{padding:.75rem 1.25rem;border-radius:var(--radius);box-shadow:var(--shadow-lg);font-size:.875rem;animation:slideIn .25s;display:flex;align-items:center;gap:.5rem}
+.toast-success{background:#d1fae5;color:#065f46}
+.toast-error{background:#fee2e2;color:#991b1b}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+/* Stat card */
+.stat-card{background:var(--c-surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:1rem 1.25rem;text-align:center}
+.stat-value{font-size:2rem;font-weight:700;color:var(--c-primary)}
+.stat-label{font-size:.75rem;color:var(--c-muted);margin-top:.15rem}
+/* Login screen */
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+.login-card{background:var(--c-surface);border-radius:16px;box-shadow:var(--shadow-lg);padding:2.5rem;width:90%;max-width:420px;text-align:center}
+.avatar-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 1rem;color:#fff}
+.avatar-staff{background:linear-gradient(135deg,#6366f1,#8b5cf6)}
+.avatar-admin{background:linear-gradient(135deg,#f59e0b,#ef4444)}
+/* Sync indicator */
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--c-success);display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hidden{display:none !important}
+/* Progress bar */
+.progress-bar{height:6px;background:var(--c-border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .3s}
+.progress-success{background:var(--c-success)}
+.progress-warning{background:var(--c-warning)}
+.progress-danger{background:var(--c-danger)}
+/* Section divider */
+.section-title{font-size:1rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+/* Filter row */
+.filter-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+/* Event list */
+.event-item{padding:.6rem .75rem;background:var(--c-bg);border-radius:8px;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer;transition:all .12s}
+.event-item:hover{background:#eef2ff}
+.event-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.event-dot.meeting{background:var(--c-primary)}
+.event-dot.activity{background:var(--c-success)}
+.event-dot.personal{background:var(--c-warning)}
+</style>
+</head>
+<body>
+
+<!-- ==================== LOGIN SCREEN ==================== -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div style="font-size:3rem;margin-bottom:.5rem">⛪</div>
+    <h2 class="text-xl font-bold mb-2">教會行政管理系統</h2>
+    <p class="text-muted text-sm mb-4">Church Administration System — v1.0.0</p>
+    <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
+      <button class="btn btn-primary btn-lg" style="flex:1" onclick="login('staff')">
+        <span class="avatar-circle avatar-staff" style="width:40px;height:40px;font-size:1.2rem;margin:0">👤</span>
+        <span>同工登入</span>
+      </button>
+      <button class="btn btn-warning btn-lg" style="flex:1" onclick="login('admin')">
+        <span class="avatar-circle avatar-admin" style="width:40px;height:40px;font-size:1.2rem;margin:0">🛡️</span>
+        <span>管理員登入</span>
+      </button>
+    </div>
+    <p class="text-xs text-muted">⚠️ 本地離線模式 · 數據儲存於瀏覽器</p>
+    <p class="text-xs text-muted mt-2">💡 提示：開兩個分頁分別登入不同角色以測試同步</p>
+  </div>
+</div>
+
+<!-- ==================== MAIN APP ==================== -->
+<div id="app" class="hidden">
+  <!-- Top Bar -->
+  <div class="topbar flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <span style="font-size:1.5rem">⛪</span>
+      <div>
+        <span class="font-bold text-lg" id="appTitle">教會行政管理系統</span>
+        <span class="text-xs text-muted ml-2" id="roleBadge"></span>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-muted flex items-center gap-1">
+        <span class="sync-dot"></span> 本地同步中
+      </span>
+      <button class="btn btn-outline btn-sm" onclick="switchRole()">🔄 切換角色</button>
+      <button class="btn btn-outline btn-sm" onclick="logout()">🚪 登出</button>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="content container" id="mainContent"></div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script>
+/* ================================================================
+   教會行政管理系統 v1.0.0 — 第一階段原型
+   純離線 · localStorage + IndexedDB · 跨分頁同步
+   ================================================================ */
+
+// ─── 全域狀態 ───
+const APP = {
+  currentRole: null,   // 'staff' | 'admin'
+  currentUser: null,   // { id, name, role, ... }
+  currentTab: 'calendar',
+  db: null
+};
+
+// ─── IndexedDB 初始化 ───
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('ChurchAdminDB', 1);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('users')) {
+        db.createObjectStore('users', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('events')) {
+        const es = db.createObjectStore('events', { keyPath: 'id', autoIncrement: true });
+        es.createIndex('userId', 'userId', { unique: false });
+        es.createIndex('date', 'date', { unique: false });
+      }
+      if (!db.objectStoreNames.contains('leaveRequests')) {
+        const ls = db.createObjectStore('leaveRequests', { keyPath: 'id', autoIncrement: true });
+        ls.createIndex('userId', 'userId', { unique: false });
+        ls.createIndex('status', 'status', { unique: false });
+      }
+      if (!db.objectStoreNames.contains('expenseRequests')) {
+        const es2 = db.createObjectStore('expenseRequests', { keyPath: 'id', autoIncrement: true });
+        es2.createIndex('userId', 'userId', { unique: false });
+        es2.createIndex('status', 'status', { unique: false });
+      }
+      if (!db.objectStoreNames.contains('activities')) {
+        db.createObjectStore('activities', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = (e) => {
+      APP.db = e.target.result;
+      resolve(APP.db);
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbPut(storeName, data) {
+  return new Promise((resolve, reject) => {
+    const tx = APP.db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    const req = store.put(data);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbGetAll(storeName) {
+  return new Promise((resolve, reject) => {
+    const tx = APP.db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbDelete(storeName, id) {
+  return new Promise((resolve, reject) => {
+    const tx = APP.db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbGetByIndex(storeName, indexName, value) {
+  return new Promise((resolve, reject) => {
+    const tx = APP.db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const index = store.index(indexName);
+    const req = index.getAll(value);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// ─── 種子數據 ───
+const SEED_USERS = [
+  { id: 'u1', name: '陳牧師', role: 'staff', annualLeave: 14, compLeave: 0, sickLeave: 30 },
+  { id: 'u2', name: '李傳道', role: 'staff', annualLeave: 12, compLeave: 2, sickLeave: 30 },
+  { id: 'u3', name: '王傳道', role: 'staff', annualLeave: 10, compLeave: 0, sickLeave: 30 },
+  { id: 'u4', name: '張姑娘', role: 'staff', annualLeave: 14, compLeave: 3, sickLeave: 30 },
+  { id: 'admin1', name: '行政主任', role: 'admin', annualLeave: 18, compLeave: 0, sickLeave: 30 }
+];
+
+async function seedData() {
+  const users = await dbGetAll('users');
+  if (users.length === 0) {
+    for (const u of SEED_USERS) await dbPut('users', u);
+    // 種子活動
+    await dbPut('activities', { id: 1, name: '2026夏季佈道會', date: '2026-07-15', budget: 50000, status: 'planned' });
+    await dbPut('activities', { id: 2, name: '2026培靈會', date: '2026-09-20', budget: 30000, status: 'planned' });
+    await dbPut('activities', { id: 3, name: '聖誕節晚會', date: '2026-12-24', budget: 20000, status: 'planned' });
+    // 種子請假記錄
+    await dbPut('leaveRequests', { id: 1, userId: 'u1', type: 'annual', startDate: '2026-06-15', endDate: '2026-06-17', reason: '家庭旅行', status: 'pending', createdAt: Date.now() });
+    await dbPut('leaveRequests', { id: 2, userId: 'u2', type: 'sick', startDate: '2026-06-10', endDate: '2026-06-10', reason: '身體不適', status: 'approved', createdAt: Date.now() - 86400000 });
+    // 種子報銷記錄
+    await dbPut('expenseRequests', { id: 1, userId: 'u1', category: 'travel', amount: 1500, description: '探訪會友交通費', receipt: '', status: 'pending', createdAt: Date.now() });
+    await dbPut('expenseRequests', { id: 2, userId: 'u3', category: 'stationery', amount: 320, description: '主日學教材印刷', receipt: '', status: 'approved', createdAt: Date.now() - 172800000 });
+    // 種子日程
+    await dbPut('events', { id: 1, userId: 'u1', title: '主日崇拜', date: '2026-06-14', type: 'meeting', time: '10:00' });
+    await dbPut('events', { id: 2, userId: 'u1', title: '同工會議', date: '2026-06-16', type: 'meeting', time: '14:30' });
+    await dbPut('events', { id: 3, userId: 'u1', title: '探訪陳弟兄', date: '2026-06-18', type: 'activity', time: '15:00' });
+  }
+}
+
+// ─── 登入邏輯 ───
+async function login(role) {
+  APP.currentRole = role;
+  const users = await dbGetAll('users');
+  if (role === 'admin') {
+    APP.currentUser = users.find(u => u.role === 'admin') || SEED_USERS.find(u => u.role === 'admin');
+  } else {
+    APP.currentUser = users.find(u => u.role === 'staff' && u.id === 'u1') || SEED_USERS.find(u => u.id === 'u1');
+  }
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  updateTopBar();
+  renderMainContent();
+}
+
+function updateTopBar() {
+  const roleLabel = APP.currentRole === 'admin' ? '管理員' : '同工';
+  const roleColor = APP.currentRole === 'admin' ? 'badge-warning' : 'badge-info';
+  document.getElementById('appTitle').textContent = APP.currentRole === 'admin' ? '管理員控制台' : '同工工作台';
+  document.getElementById('roleBadge').innerHTML = `<span class="badge ${roleColor}">${roleLabel} · ${APP.currentUser.name}</span>`;
+}
+
+async function switchRole() {
+  APP.currentRole = APP.currentRole === 'admin' ? 'staff' : 'admin';
+  const users = await dbGetAll('users');
+  if (APP.currentRole === 'admin') {
+    APP.currentUser = users.find(u => u.role === 'admin');
+  } else {
+    APP.currentUser = users.find(u => u.role === 'staff' && u.id === 'u1');
+  }
+  APP.currentTab = APP.currentRole === 'admin' ? 'approvals' : 'calendar';
+  updateTopBar();
+  renderMainContent();
+  showToast('已切換為' + (APP.currentRole === 'admin' ? '管理員' : '同工') + '版面', 'success');
+}
+
+function logout() {
+  APP.currentRole = null;
+  APP.currentUser = null;
+  APP.currentTab = 'calendar';
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+// ─── 主內容渲染 ───
+function renderMainContent() {
+  const container = document.getElementById('mainContent');
+  if (APP.currentRole === 'admin') {
+    container.innerHTML = renderAdminView();
+  } else {
+    container.innerHTML = renderStaffView();
+  }
+  bindTabEvents();
+  // 延遲加載數據
+  setTimeout(() => {
+    if (APP.currentRole === 'staff') loadStaffData();
+    else loadAdminData();
+  }, 50);
+}
+
+// ─── STAFF VIEW ───
+function renderStaffView() {
+  return `
+    <div class="tab-nav" id="staffTabs">
+      <button class="tab-btn active" data-tab="calendar">📅 日程月曆</button>
+      <button class="tab-btn" data-tab="leave">🏖️ 假期管理</button>
+      <button class="tab-btn" data-tab="expense">💰 報銷申請</button>
+    </div>
+    <div id="staffTabContent"></div>
+  `;
+}
+
+function loadStaffData() {
+  const tab = APP.currentTab || 'calendar';
+  switch (tab) {
+    case 'calendar': renderCalendar(); break;
+    case 'leave': renderLeave(); break;
+    case 'expense': renderExpense(); break;
+  }
+}
+
+// ─── 日程月曆 ───
+function renderCalendar() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const dayHeaders = ['日','一','二','三','四','五','六'];
+
+  let calHTML = '<div class="calendar-grid">';
+  dayHeaders.forEach(d => { calHTML += `<div class="calendar-header">${d}</div>`; });
+  for (let i = 0; i < firstDay; i++) calHTML += '<div class="calendar-day other-month"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = d === now.getDate();
+    const cls = ['calendar-day'];
+    if (isToday) cls.push('today');
+    calHTML += `<div class="${cls.join(' ')}" data-date="${dateStr}" onclick="showDayEvents('${dateStr}')">${d}</div>`;
+  }
+  calHTML += '</div>';
+
+  document.getElementById('staffTabContent').innerHTML = `
+    <div class="grid grid-cols-3 gap-4">
+      <div class="card" style="grid-column:span 2">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold">${year}年 ${monthNames[month]}</h3>
+          <button class="btn btn-primary btn-sm" onclick="openEventModal()">＋ 新增事件</button>
+        </div>
+        ${calHTML}
+      </div>
+      <div class="card">
+        <h3 class="section-title">📋 今日日程</h3>
+        <div id="todayEvents"><p class="text-muted text-sm">載入中...</p></div>
+        <hr style="border:none;border-top:1px solid var(--c-border);margin:1rem 0">
+        <h3 class="section-title">📌 本月事件</h3>
+        <div id="monthEvents"><p class="text-muted text-sm">載入中...</p></div>
+      </div>
+    </div>
+  `;
+
+  loadCalendarEvents(year, month);
+}
+
+async function loadCalendarEvents(year, month) {
+  const events = await dbGetByIndex('events', 'userId', APP.currentUser.id);
+  const monthPrefix = `${year}-${String(month+1).padStart(2,'0')}`;
+  const monthEvents = events.filter(e => e.date.startsWith(monthPrefix));
+
+  // 標記日曆中有事件的日期
+  const eventDates = new Set(monthEvents.map(e => e.date));
+  document.querySelectorAll('.calendar-day[data-date]').forEach(el => {
+    if (eventDates.has(el.dataset.date)) el.classList.add('has-event');
+  });
+
+  // 今日事件
+  const today = `${year}-${String(month+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`;
+  const todayEvents = events.filter(e => e.date === today);
+  const todayEl = document.getElementById('todayEvents');
+  if (todayEvents.length === 0) {
+    todayEl.innerHTML = '<p class="text-muted text-sm">今日暫無安排</p>';
+  } else {
+    todayEl.innerHTML = todayEvents.map(e => `
+      <div class="event-item" onclick="editEvent(${e.id})">
+        <span class="event-dot ${e.type || 'meeting'}"></span>
+        <span style="flex:1">${e.title}</span>
+        <span class="text-xs text-muted">${e.time || ''}</span>
+      </div>
+    `).join('');
+  }
+
+  // 本月事件列表
+  const monthEl = document.getElementById('monthEvents');
+  if (monthEvents.length === 0) {
+    monthEl.innerHTML = '<p class="text-muted text-sm">本月暫無事件</p>';
+  } else {
+    monthEl.innerHTML = monthEvents.sort((a,b) => a.date.localeCompare(b.date)).map(e => `
+      <div class="event-item" onclick="editEvent(${e.id})">
+        <span class="event-dot ${e.type || 'meeting'}"></span>
+        <span style="flex:1">${e.title}</span>
+        <span class="text-xs text-muted">${e.date.slice(5)}</span>
+      </div>
+    `).join('');
+  }
+}
+
+async function showDayEvents(dateStr) {
+  const events = await dbGetByIndex('events', 'userId', APP.currentUser.id);
+  const dayEvents = events.filter(e => e.date === dateStr);
+  let listHTML = dayEvents.map(e => `
+    <div class="event-item" style="justify-content:space-between">
+      <span><span class="event-dot ${e.type || 'meeting'} mr-2"></span>${e.title} ${e.time ? '('+e.time+')' : ''}</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteEvent(${e.id});closeModal()">刪除</button>
+    </div>
+  `).join('');
+  if (!listHTML) listHTML = '<p class="text-muted text-sm">當日暫無事件</p>';
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">📅 ${dateStr} 日程</h3>
+    ${listHTML}
+    <button class="btn btn-primary btn-sm mt-3" onclick="closeModal();openEventModal('${dateStr}')">＋ 新增事件</button>
+  `);
+}
+
+function openEventModal(prefillDate) {
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">新增事件</h3>
+    <div class="mb-3">
+      <label class="label">事件標題</label>
+      <input class="input" id="eventTitle" placeholder="例如：主日崇拜">
+    </div>
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <div>
+        <label class="label">日期</label>
+        <input class="input" type="date" id="eventDate" value="${prefillDate || ''}">
+      </div>
+      <div>
+        <label class="label">時間</label>
+        <input class="input" type="time" id="eventTime" value="10:00">
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="label">類型</label>
+      <select class="select" id="eventType">
+        <option value="meeting">會議</option>
+        <option value="activity">活動</option>
+        <option value="personal">個人</option>
+      </select>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-primary btn-block" onclick="saveEvent()">儲存</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  `);
+}
+
+async function saveEvent() {
+  const title = document.getElementById('eventTitle').value.trim();
+  const date = document.getElementById('eventDate').value;
+  const time = document.getElementById('eventTime').value;
+  const type = document.getElementById('eventType').value;
+  if (!title || !date) { showToast('請填寫標題和日期', 'error'); return; }
+  await dbPut('events', { userId: APP.currentUser.id, title, date, time, type });
+  closeModal();
+  loadStaffData();
+  showToast('事件已新增 ✓', 'success');
+}
+
+async function editEvent(id) {
+  const events = await dbGetAll('events');
+  const ev = events.find(e => e.id === id);
+  if (!ev) return;
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">編輯事件</h3>
+    <div class="mb-3">
+      <label class="label">事件標題</label>
+      <input class="input" id="eventTitle" value="${escapeHtml(ev.title)}">
+    </div>
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <div><label class="label">日期</label><input class="input" type="date" id="eventDate" value="${ev.date}"></div>
+      <div><label class="label">時間</label><input class="input" type="time" id="eventTime" value="${ev.time || ''}"></div>
+    </div>
+    <div class="mb-4">
+      <label class="label">類型</label>
+      <select class="select" id="eventType">
+        <option value="meeting" ${ev.type==='meeting'?'selected':''}>會議</option>
+        <option value="activity" ${ev.type==='activity'?'selected':''}>活動</option>
+        <option value="personal" ${ev.type==='personal'?'selected':''}>個人</option>
+      </select>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-primary" style="flex:1" onclick="updateEvent(${id})">更新</button>
+      <button class="btn btn-danger" onclick="deleteEvent(${id});closeModal()">刪除</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  `);
+}
+
+async function updateEvent(id) {
+  const title = document.getElementById('eventTitle').value.trim();
+  const date = document.getElementById('eventDate').value;
+  const time = document.getElementById('eventTime').value;
+  const type = document.getElementById('eventType').value;
+  if (!title || !date) { showToast('請填寫標題和日期', 'error'); return; }
+  await dbPut('events', { id, userId: APP.currentUser.id, title, date, time, type });
+  closeModal();
+  loadStaffData();
+  showToast('事件已更新 ✓', 'success');
+}
+
+async function deleteEvent(id) {
+  await dbDelete('events', id);
+  loadStaffData();
+  showToast('事件已刪除', 'success');
+}
+
+// ─── 假期管理 ───
+async function renderLeave() {
+  const user = APP.currentUser;
+  const leaves = await dbGetByIndex('leaveRequests', 'userId', user.id);
+  const approved = leaves.filter(l => l.status === 'approved');
+  let usedAnnual = 0, usedComp = 0;
+  approved.forEach(l => {
+    const days = daysBetween(l.startDate, l.endDate);
+    if (l.type === 'annual') usedAnnual += days;
+    else if (l.type === 'comp') usedComp += days;
+  });
+
+  const remainAnnual = Math.max(0, (user.annualLeave || 0) - usedAnnual);
+  const remainComp = Math.max(0, (user.compLeave || 0) - usedComp);
+  const remainSick = Math.max(0, (user.sickLeave || 30));
+
+  document.getElementById('staffTabContent').innerHTML = `
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="stat-card">
+        <div class="stat-value">${remainAnnual}</div>
+        <div class="stat-label">剩餘年假 (共${user.annualLeave||0}天)</div>
+        <div class="progress-bar mt-2"><div class="progress-fill progress-${remainAnnual>3?'success':'warning'}" style="width:${(remainAnnual/(user.annualLeave||14))*100}%"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${remainComp}</div>
+        <div class="stat-label">剩餘補假 (共${user.compLeave||0}天)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${remainSick}</div>
+        <div class="stat-label">剩餘病假</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${leaves.filter(l=>l.status==='pending').length}</div>
+        <div class="stat-label">待審批申請</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="card" style="grid-column:span 2">
+        <h3 class="section-title">📋 請假記錄</h3>
+        <div id="leaveList">${renderLeaveList(leaves)}</div>
+      </div>
+      <div class="card">
+        <h3 class="section-title">✍️ 申請假期</h3>
+        <form onsubmit="submitLeave(event)" style="display:flex;flex-direction:column;gap:.75rem">
+          <div>
+            <label class="label">假期類型</label>
+            <select class="select" id="leaveType" required>
+              <option value="annual">年假</option>
+              <option value="comp">補假</option>
+              <option value="sick">病假</option>
+              <option value="other">其他</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="label">開始日期</label><input class="input" type="date" id="leaveStart" required></div>
+            <div><label class="label">結束日期</label><input class="input" type="date" id="leaveEnd" required></div>
+          </div>
+          <div><label class="label">原因</label><textarea class="textarea" id="leaveReason" placeholder="請簡述請假原因..."></textarea></div>
+          <button class="btn btn-primary btn-block" type="submit">📤 提交申請</button>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function renderLeaveList(leaves) {
+  if (leaves.length === 0) return '<p class="text-muted text-sm">暫無請假記錄</p>';
+  const typeLabels = { annual:'年假', comp:'補假', sick:'病假', other:'其他' };
+  const statusLabels = { pending:['待審批','warning'], approved:['已批准','success'], rejected:['已拒絕','danger'] };
+  return `<table class="table">
+    <thead><tr><th>類型</th><th>日期</th><th>天數</th><th>原因</th><th>狀態</th></tr></thead>
+    <tbody>${leaves.sort((a,b)=>b.createdAt-a.createdAt).map(l => `
+      <tr>
+        <td>${typeLabels[l.type]||l.type}</td>
+        <td>${l.startDate} 至 ${l.endDate}</td>
+        <td>${daysBetween(l.startDate, l.endDate)}天</td>
+        <td>${escapeHtml(l.reason||'')}</td>
+        <td><span class="badge badge-${statusLabels[l.status][1]}">${statusLabels[l.status][0]}</span></td>
+      </tr>
+    `).join('')}</tbody></table>`;
+}
+
+async function submitLeave(e) {
+  e.preventDefault();
+  const type = document.getElementById('leaveType').value;
+  const startDate = document.getElementById('leaveStart').value;
+  const endDate = document.getElementById('leaveEnd').value;
+  const reason = document.getElementById('leaveReason').value.trim();
+  if (!startDate || !endDate) { showToast('請選擇日期', 'error'); return; }
+  if (startDate > endDate) { showToast('結束日期不可早於開始日期', 'error'); return; }
+  await dbPut('leaveRequests', { userId: APP.currentUser.id, type, startDate, endDate, reason, status: 'pending', createdAt: Date.now() });
+  loadStaffData();
+  showToast('假期申請已提交 ✓', 'success');
+}
+
+// ─── 報銷申請 ───
+async function renderExpense() {
+  const expenses = await dbGetByIndex('expenseRequests', 'userId', APP.currentUser.id);
+  document.getElementById('staffTabContent').innerHTML = `
+    <div class="grid grid-cols-3 gap-4">
+      <div class="card" style="grid-column:span 2">
+        <h3 class="section-title">📋 報銷記錄</h3>
+        ${renderExpenseList(expenses)}
+      </div>
+      <div class="card">
+        <h3 class="section-title">✍️ 新增報銷</h3>
+        <form onsubmit="submitExpense(event)" style="display:flex;flex-direction:column;gap:.75rem">
+          <div>
+            <label class="label">報銷類別</label>
+            <select class="select" id="expenseCategory" required>
+              <option value="travel">🚗 差旅交通</option>
+              <option value="stationery">📎 文具用品</option>
+              <option value="meal">🍽️ 聚餐</option>
+              <option value="custom">📝 自定義項目</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">自定義項目名稱 <span class="text-xs text-muted">(如選擇自定義)</span></label>
+            <input class="input" id="expenseCustomName" placeholder="例如：營會物資">
+          </div>
+          <div>
+            <label class="label">金額 (HKD)</label>
+            <input class="input" type="number" id="expenseAmount" placeholder="0.00" min="0" step="0.01" required>
+          </div>
+          <div>
+            <label class="label">描述</label>
+            <textarea class="textarea" id="expenseDesc" placeholder="請描述報銷詳情..."></textarea>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit">📤 提交報銷</button>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function renderExpenseList(expenses) {
+  if (expenses.length === 0) return '<p class="text-muted text-sm">暫無報銷記錄</p>';
+  const catLabels = { travel:'差旅交通', stationery:'文具用品', meal:'聚餐', custom:'自定義' };
+  const statusLabels = { pending:['待審批','warning'], approved:['已批准','success'], rejected:['已拒絕','danger'] };
+  return `<table class="table">
+    <thead><tr><th>類別</th><th>金額</th><th>描述</th><th>日期</th><th>狀態</th></tr></thead>
+    <tbody>${expenses.sort((a,b)=>b.createdAt-a.createdAt).map(e => `
+      <tr>
+        <td>${catLabels[e.category]||e.category}</td>
+        <td class="font-semibold">$${e.amount.toFixed(2)}</td>
+        <td>${escapeHtml(e.description||'')}</td>
+        <td class="text-sm text-muted">${new Date(e.createdAt).toLocaleDateString('zh-HK')}</td>
+        <td><span class="badge badge-${statusLabels[e.status][1]}">${statusLabels[e.status][0]}</span></td>
+      </tr>
+    `).join('')}</tbody></table>`;
+}
+
+async function submitExpense(e) {
+  e.preventDefault();
+  const category = document.getElementById('expenseCategory').value;
+  const customName = document.getElementById('expenseCustomName').value.trim();
+  const amount = parseFloat(document.getElementById('expenseAmount').value);
+  const description = document.getElementById('expenseDesc').value.trim();
+  if (!amount || amount <= 0) { showToast('請輸入有效金額', 'error'); return; }
+  const displayCategory = category === 'custom' && customName ? customName : category;
+  await dbPut('expenseRequests', { userId: APP.currentUser.id, category: displayCategory, amount, description, status: 'pending', createdAt: Date.now() });
+  loadStaffData();
+  showToast('報銷申請已提交 ✓', 'success');
+}
+
+// ─── ADMIN VIEW ───
+function renderAdminView() {
+  return `
+    <div class="tab-nav" id="adminTabs">
+      <button class="tab-btn active" data-tab="approvals">✅ 審批中心</button>
+      <button class="tab-btn" data-tab="activities">📊 活動與預算</button>
+      <button class="tab-btn" data-tab="personnel">👥 人員管理</button>
+    </div>
+    <div id="adminTabContent"></div>
+  `;
+}
+
+function loadAdminData() {
+  const tab = APP.currentTab || 'approvals';
+  switch (tab) {
+    case 'approvals': renderApprovals(); break;
+    case 'activities': renderActivities(); break;
+    case 'personnel': renderPersonnel(); break;
+  }
+}
+
+// ─── 審批中心 ───
+async function renderApprovals() {
+  const [leaveReqs, expenseReqs, users] = await Promise.all([
+    dbGetAll('leaveRequests'), dbGetAll('expenseRequests'), dbGetAll('users')
+  ]);
+  const userMap = {};
+  users.forEach(u => { userMap[u.id] = u.name; });
+
+  const pendingLeaves = leaveReqs.filter(l => l.status === 'pending');
+  const pendingExpenses = expenseReqs.filter(e => e.status === 'pending');
+
+  const typeLabels = { annual:'年假', comp:'補假', sick:'病假', other:'其他' };
+  const catLabels = { travel:'差旅交通', stationery:'文具用品', meal:'聚餐', custom:'自定義' };
+
+  document.getElementById('adminTabContent').innerHTML = `
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="stat-card"><div class="stat-value">${pendingLeaves.length}</div><div class="stat-label">待審假期</div></div>
+      <div class="stat-card"><div class="stat-value">${pendingExpenses.length}</div><div class="stat-label">待審報銷</div></div>
+    </div>
+    <div class="card mb-4">
+      <h3 class="section-title">🏖️ 假期審批</h3>
+      ${pendingLeaves.length === 0 ? '<p class="text-muted text-sm">暫無待審假期</p>' : `
+      <table class="table">
+        <thead><tr><th>申請人</th><th>類型</th><th>日期</th><th>天數</th><th>原因</th><th>操作</th></tr></thead>
+        <tbody>${pendingLeaves.map(l => `
+          <tr>
+            <td class="font-medium">${userMap[l.userId]||'未知'}</td>
+            <td>${typeLabels[l.type]}</td>
+            <td>${l.startDate} 至 ${l.endDate}</td>
+            <td>${daysBetween(l.startDate,l.endDate)}天</td>
+            <td>${escapeHtml(l.reason||'')}</td>
+            <td>
+              <button class="btn btn-success btn-sm mr-2" onclick="approveLeave(${l.id})">✓ 批准</button>
+              <button class="btn btn-danger btn-sm" onclick="rejectLeave(${l.id})">✗ 拒絕</button>
+            </td>
+          </tr>
+        `).join('')}</tbody></table>`}
+    </div>
+    <div class="card">
+      <h3 class="section-title">💰 報銷審批</h3>
+      ${pendingExpenses.length === 0 ? '<p class="text-muted text-sm">暫無待審報銷</p>' : `
+      <table class="table">
+        <thead><tr><th>申請人</th><th>類別</th><th>金額</th><th>描述</th><th>操作</th></tr></thead>
+        <tbody>${pendingExpenses.map(e => `
+          <tr>
+            <td class="font-medium">${userMap[e.userId]||'未知'}</td>
+            <td>${catLabels[e.category]||e.category}</td>
+            <td class="font-semibold">$${e.amount.toFixed(2)}</td>
+            <td>${escapeHtml(e.description||'')}</td>
+            <td>
+              <button class="btn btn-success btn-sm mr-2" onclick="approveExpense(${e.id})">✓ 批准</button>
+              <button class="btn btn-danger btn-sm" onclick="rejectExpense(${e.id})">✗ 拒絕</button>
+            </td>
+          </tr>
+        `).join('')}</tbody></table>`}
+    </div>
+  `;
+}
+
+async function approveLeave(id) {
+  await dbPut('leaveRequests', { ...(await dbGetAll('leaveRequests')).find(l => l.id === id), status: 'approved' });
+  loadAdminData();
+  showToast('假期已批准 ✓', 'success');
+}
+
+async function rejectLeave(id) {
+  await dbPut('leaveRequests', { ...(await dbGetAll('leaveRequests')).find(l => l.id === id), status: 'rejected' });
+  loadAdminData();
+  showToast('假期已拒絕', 'success');
+}
+
+async function approveExpense(id) {
+  await dbPut('expenseRequests', { ...(await dbGetAll('expenseRequests')).find(e => e.id === id), status: 'approved' });
+  loadAdminData();
+  showToast('報銷已批准 ✓', 'success');
+}
+
+async function rejectExpense(id) {
+  await dbPut('expenseRequests', { ...(await dbGetAll('expenseRequests')).find(e => e.id === id), status: 'rejected' });
+  loadAdminData();
+  showToast('報銷已拒絕', 'success');
+}
+
+// ─── 活動與預算 ───
+async function renderActivities() {
+  const activities = await dbGetAll('activities');
+  const totalBudget = activities.reduce((sum, a) => sum + (a.budget || 0), 0);
+  document.getElementById('adminTabContent').innerHTML = `
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="stat-card"><div class="stat-value">${activities.length}</div><div class="stat-label">年度活動總數</div></div>
+      <div class="stat-card"><div class="stat-value">$${totalBudget.toLocaleString()}</div><div class="stat-label">總預算 (HKD)</div></div>
+    </div>
+    <div class="card mb-4">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="section-title" style="margin:0">📊 活動列表</h3>
+        <button class="btn btn-primary btn-sm" onclick="openActivityModal()">＋ 新增活動</button>
+      </div>
+      <div id="activityList">${renderActivityList(activities)}</div>
+    </div>
+  `;
+}
+
+function renderActivityList(activities) {
+  if (activities.length === 0) return '<p class="text-muted text-sm">暫無活動</p>';
+  const statusLabels = { planned:['籌劃中','info'], ongoing:['進行中','success'], completed:['已完成','muted'] };
+  return `<table class="table">
+    <thead><tr><th>活動名稱</th><th>日期</th><th>預算</th><th>狀態</th><th>操作</th></tr></thead>
+    <tbody>${activities.map(a => `
+      <tr>
+        <td class="font-medium">${escapeHtml(a.name)}</td>
+        <td>${a.date||''}</td>
+        <td class="font-semibold">$${(a.budget||0).toLocaleString()}</td>
+        <td><span class="badge badge-${statusLabels[a.status||'planned'][1]}">${statusLabels[a.status||'planned'][0]}</span></td>
+        <td>
+          <button class="btn btn-outline btn-sm mr-2" onclick="editActivity(${a.id})">編輯</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteActivity(${a.id})">刪除</button>
+        </td>
+      </tr>
+    `).join('')}</tbody></table>`;
+}
+
+function openActivityModal() {
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">新增活動</h3>
+    <div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" placeholder="例如：夏季佈道會"></div>
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <div><label class="label">日期</label><input class="input" type="date" id="actDate"></div>
+      <div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="0"></div>
+    </div>
+    <div class="mb-4"><label class="label">狀態</label>
+      <select class="select" id="actStatus">
+        <option value="planned">籌劃中</option>
+        <option value="ongoing">進行中</option>
+        <option value="completed">已完成</option>
+      </select>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-primary btn-block" onclick="saveActivity()">儲存</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  `);
+}
+
+async function saveActivity() {
+  const name = document.getElementById('actName').value.trim();
+  const date = document.getElementById('actDate').value;
+  const budget = parseInt(document.getElementById('actBudget').value) || 0;
+  const status = document.getElementById('actStatus').value;
+  if (!name) { showToast('請填寫活動名稱', 'error'); return; }
+  await dbPut('activities', { name, date, budget, status });
+  closeModal();
+  loadAdminData();
+  showToast('活動已新增 ✓', 'success');
+}
+
+async function editActivity(id) {
+  const activities = await dbGetAll('activities');
+  const a = activities.find(x => x.id === id);
+  if (!a) return;
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">編輯活動</h3>
+    <div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" value="${escapeHtml(a.name)}"></div>
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <div><label class="label">日期</label><input class="input" type="date" id="actDate" value="${a.date||''}"></div>
+      <div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="${a.budget||0}"></div>
+    </div>
+    <div class="mb-4"><label class="label">狀態</label>
+      <select class="select" id="actStatus">
+        <option value="planned" ${a.status==='planned'?'selected':''}>籌劃中</option>
+        <option value="ongoing" ${a.status==='ongoing'?'selected':''}>進行中</option>
+        <option value="completed" ${a.status==='completed'?'selected':''}>已完成</option>
+      </select>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-primary" style="flex:1" onclick="updateActivity(${id})">更新</button>
+      <button class="btn btn-danger" onclick="deleteActivity(${id});closeModal()">刪除</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  `);
+}
+
+async function updateActivity(id) {
+  const name = document.getElementById('actName').value.trim();
+  const date = document.getElementById('actDate').value;
+  const budget = parseInt(document.getElementById('actBudget').value) || 0;
+  const status = document.getElementById('actStatus').value;
+  if (!name) { showToast('請填寫活動名稱', 'error'); return; }
+  await dbPut('activities', { id, name, date, budget, status });
+  closeModal();
+  loadAdminData();
+  showToast('活動已更新 ✓', 'success');
+}
+
+async function deleteActivity(id) {
+  await dbDelete('activities', id);
+  loadAdminData();
+  showToast('活動已刪除', 'success');
+}
+
+// ─── 人員管理 ───
+async function renderPersonnel() {
+  const users = await dbGetAll('users');
+  document.getElementById('adminTabContent').innerHTML = `
+    <div class="card">
+      <h3 class="section-title">👥 同工名單</h3>
+      <table class="table">
+        <thead><tr><th>姓名</th><th>角色</th><th>年假額度</th><th>補假額度</th><th>操作</th></tr></thead>
+        <tbody>${users.filter(u => u.role === 'staff').map(u => `
+          <tr>
+            <td class="font-medium">${escapeHtml(u.name)}</td>
+            <td><span class="badge badge-info">同工</span></td>
+            <td>${u.annualLeave||0} 天</td>
+            <td>${u.compLeave||0} 天</td>
+            <td><button class="btn btn-outline btn-sm" onclick="editUserLeave('${u.id}')">調整額度</button></td>
+          </tr>
+        `).join('')}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function editUserLeave(userId) {
+  const users = await dbGetAll('users');
+  const u = users.find(x => x.id === userId);
+  if (!u) return;
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">調整假期額度 — ${escapeHtml(u.name)}</h3>
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div><label class="label">年假天數</label><input class="input" type="number" id="annualDays" min="0" max="30" value="${u.annualLeave||0}"></div>
+      <div><label class="label">補假天數</label><input class="input" type="number" id="compDays" min="0" max="30" value="${u.compLeave||0}"></div>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-primary btn-block" onclick="saveUserLeave('${userId}')">儲存</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  `);
+}
+
+async function saveUserLeave(userId) {
+  const users = await dbGetAll('users');
+  const u = users.find(x => x.id === userId);
+  if (!u) return;
+  u.annualLeave = parseInt(document.getElementById('annualDays').value) || 0;
+  u.compLeave = parseInt(document.getElementById('compDays').value) || 0;
+  await dbPut('users', u);
+  closeModal();
+  loadAdminData();
+  showToast(`${u.name} 的假期額度已更新 ✓`, 'success');
+}
+
+// ─── Tab 切換 ───
+function bindTabEvents() {
+  const tabContainer = APP.currentRole === 'admin' ? document.getElementById('adminTabs') : document.getElementById('staffTabs');
+  if (!tabContainer) return;
+  tabContainer.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      APP.currentTab = btn.dataset.tab;
+      loadStaffData();
+    });
+  });
+}
+
+// ─── Modal 工具 ───
+function showModal(html) {
+  const existing = document.querySelector('.modal-overlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `<div class="modal">${html}</div>`;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+  document.body.appendChild(overlay);
+}
+
+function closeModal() {
+  const overlay = document.querySelector('.modal-overlay');
+  if (overlay) overlay.remove();
+}
+
+// ─── Toast ───
+function showToast(msg, type) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .3s'; setTimeout(() => toast.remove(), 300); }, 2500);
+}
+
+// ─── 工具函數 ───
+function daysBetween(start, end) {
+  if (!start || !end) return 0;
+  return Math.max(1, Math.round((new Date(end) - new Date(start)) / 86400000) + 1);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ─── 跨分頁同步 ───
+window.addEventListener('storage', (e) => {
+  // localStorage 變更時觸發，用於 IndexedDB 變更的信號
+  if (e.key === 'ChurchAdminSync') {
+    const payload = JSON.parse(e.newValue || '{}');
+    if (payload.action === 'refresh') {
+      console.log('[Sync] 偵測到其他分頁的數據變更，重新加載...');
+      if (APP.currentRole) {
+        if (APP.currentRole === 'staff') loadStaffData();
+        else loadAdminData();
+      }
+      showToast('🔄 數據已從其他分頁同步', 'success');
+    }
+  }
+});
+
+// 包裝 IndexedDB 寫入操作以觸發同步信號
+const _dbPut = dbPut;
+dbPut = async function(storeName, data) {
+  const result = await _dbPut(storeName, data);
+  localStorage.setItem('ChurchAdminSync', JSON.stringify({ action: 'refresh', store: storeName, ts: Date.now() }));
+  // 立即清除標記以避免自身觸發
+  setTimeout(() => localStorage.removeItem('ChurchAdminSync'), 100);
+  return result;
+};
+
+const _dbDelete = dbDelete;
+dbDelete = async function(storeName, id) {
+  await _dbDelete(storeName, id);
+  localStorage.setItem('ChurchAdminSync', JSON.stringify({ action: 'refresh', store: storeName, ts: Date.now() }));
+  setTimeout(() => localStorage.removeItem('ChurchAdminSync'), 100);
+};
+
+// ─── 初始化 ───
+async function init() {
+  await openDB();
+  await seedData();
+  console.log('✅ 教會行政管理系統 v1.0.0 初始化完成');
+  console.log('💡 開兩個分頁分別登入不同角色可測試跨分頁同步');
+}
+
+init();
+</script>
+</body>
+</html>
