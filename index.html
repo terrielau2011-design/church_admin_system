@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>教會行政管理系統 v2.0.0</title>
+<title>教會行政管理系統 v3.0.0</title>
 <style>
 /* ===== Tailwind-lite Reset & Utility ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -20,7 +20,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .items-center{align-items:center}.justify-between{justify-content:space-between}
 .justify-center{justify-content:center}.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}
 .grid{display:grid}.grid-cols-2{grid-template-columns:repeat(2,1fr)}.grid-cols-3{grid-template-columns:repeat(3,1fr)}.grid-cols-4{grid-template-columns:repeat(4,1fr)}
-.grid-cols-5{grid-template-columns:repeat(5,1fr)}
+.grid-cols-5{grid-template-columns:repeat(5,1fr)}.grid-cols-6{grid-template-columns:repeat(6,1fr)}
 .p-1{padding:.25rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-6{padding:1.5rem}
 .px-2{padding-left:.5rem;padding-right:.5rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}
 .py-1{padding-top:.25rem;padding-bottom:.25rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}
@@ -110,34 +110,45 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .event-dot.meeting{background:var(--c-primary)}
 .event-dot.activity{background:var(--c-success)}
 .event-dot.personal{background:var(--c-warning)}
-/* Ministry category badges inline */
 .cat-shepherd{color:var(--c-shepherd);font-weight:600}
 .cat-admin{color:var(--c-admin);font-weight:600}
 .cat-grow{color:var(--c-grow);font-weight:600}
-/* Health alert banner */
 .health-alert{padding:.75rem 1rem;border-radius:8px;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem;font-size:.875rem}
 .health-alert.warn{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
 .health-alert.good{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7}
-/* SVG Chart container */
 .chart-wrap{position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column}
 .chart-legend{display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center;margin-top:.75rem;font-size:.8rem}
 .legend-dot{width:12px;height:12px;border-radius:3px;display:inline-block;flex-shrink:0}
-/* Bar chart */
 .bar-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
 .bar-label{width:100px;font-size:.8rem;text-align:right;flex-shrink:0;color:var(--c-muted)}
 .bar-track{flex:1;height:24px;background:var(--c-bg);border-radius:4px;overflow:hidden;position:relative}
 .bar-fill{height:100%;border-radius:4px;transition:width .5s;display:flex;align-items:center;padding-left:.5rem;font-size:.75rem;color:#fff;font-weight:600}
-/* Mini stat row */
 .mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem}
 .mini-stat{text-align:center;padding:.5rem;background:var(--c-bg);border-radius:8px}
 .mini-stat .val{font-size:1.25rem;font-weight:700}
 .mini-stat .lbl{font-size:.7rem;color:var(--c-muted)}
-/* Radio group for ministry category */
 .radio-group{display:flex;gap:.5rem;flex-wrap:wrap}
 .radio-card{flex:1;min-width:100px;padding:.5rem .75rem;border:2px solid var(--c-border);border-radius:8px;cursor:pointer;text-align:center;font-size:.8rem;transition:all .15s}
 .radio-card:hover{border-color:var(--c-primary)}
 .radio-card.selected{border-color:var(--c-primary);background:#eef2ff}
 .radio-card input{display:none}
+/* Annual plan timeline */
+.annual-timeline{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-bottom:1rem}
+.annual-month{padding:.5rem .25rem;border-radius:6px;background:var(--c-bg);text-align:center;font-size:.7rem;min-height:60px;cursor:pointer;transition:all .12s;border:1.5px solid transparent}
+.annual-month:hover{border-color:var(--c-primary);background:#eef2ff}
+.annual-month.has-plan{border-color:var(--c-shepherd);background:#ede9fe}
+.annual-month .m-label{font-weight:700;font-size:.75rem;margin-bottom:.15rem}
+.annual-month .m-count{font-size:.65rem;color:var(--c-muted)}
+/* Collapsible card */
+.collapse-header{cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.collapse-header:hover{color:var(--c-primary)}
+.collapse-arrow{transition:transform .2s;font-size:.8rem}
+.collapse-arrow.open{transform:rotate(90deg)}
+/* Leave quota grid */
+.quota-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.quota-item{padding:.5rem;background:var(--c-bg);border-radius:6px;text-align:center}
+.quota-item .q-val{font-size:1.1rem;font-weight:700}
+.quota-item .q-lbl{font-size:.65rem;color:var(--c-muted)}
 </style>
 </head>
 <body>
@@ -147,7 +158,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="login-card">
     <div style="font-size:3rem;margin-bottom:.5rem">⛪</div>
     <h2 class="text-xl font-bold mb-2">教會行政管理系統</h2>
-    <p class="text-muted text-sm mb-4">Church Administration System — v2.0.0</p>
+    <p class="text-muted text-sm mb-4">Church Administration System — v3.0.0</p>
     <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
       <button class="btn btn-primary btn-lg" style="flex:1" onclick="login('staff')">
         <span class="avatar-circle avatar-staff" style="width:40px;height:40px;font-size:1.2rem;margin:0">👤</span>
@@ -184,25 +195,20 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="content container" id="mainContent"></div>
 </div>
 
-<!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- ==================== SCRIPTS ==================== -->
 <script>
 /* ================================================================
-   教會行政管理系統 v2.0.0 — 事工焦點量化 + BI 分析 + 日曆同步
-   純離線 · IndexedDB v2 · SVG 圖表 · 跨分頁同步
+   教會行政管理系統 v3.0.0
+   年度計劃獨立化 · 8種完整假別系統 · IndexedDB v3
    ================================================================ */
 
 // ─── 全域狀態 ───
 const APP = {
-  currentRole: null,
-  currentUser: null,
-  currentTab: 'calendar',
-  db: null,
-  // BI filter state
-  biPeriod: 'month',   // 'month' | 'quarter' | 'year'
-  biActivityId: null
+  currentRole: null, currentUser: null, currentTab: 'calendar', db: null,
+  biPeriod: 'month', biActivityId: null,
+  planViewYear: new Date().getFullYear()
 };
 
 // ─── 常數 ───
@@ -212,10 +218,24 @@ const MINISTRY_CATEGORIES = {
   grow:     { label: '📚 進修與充實（吸收）', color: 'var(--c-grow)', cls: 'cat-grow', examples: '課程進修/退修會' }
 };
 
-// ─── IndexedDB v2 ───
+// ─── 完整 8 種假別定義 ───
+const LEAVE_TYPES = {
+  annual:         { label: '年假',         icon: '🏖️', trackRemaining: true,  defaultQuota: 14 },
+  rest:           { label: '休假/例假',    icon: '🏠', trackRemaining: false, defaultQuota: 0 },
+  compensation:   { label: '補假',         icon: '🔄', trackRemaining: true,  defaultQuota: 0 },
+  sick:           { label: '病假',         icon: '🤒', trackRemaining: true,  defaultQuota: 30 },
+  injury:         { label: '工傷假',       icon: '🤕', trackRemaining: false, defaultQuota: 0 },
+  maternity:      { label: '產假/侍產假',  icon: '👶', trackRemaining: false, defaultQuota: 0 },
+  marriage:       { label: '婚假',         icon: '💒', trackRemaining: true,  defaultQuota: 3 },
+  compassionate:  { label: '喪假',         icon: '🕊️', trackRemaining: true,  defaultQuota: 3 }
+};
+
+const LEAVE_STATUS_LABELS = { pending: ['待審批','warning'], approved: ['已批准','success'], rejected: ['已拒絕','danger'] };
+
+// ─── IndexedDB v3 ───
 function openDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open('ChurchAdminDB', 2);
+    const req = indexedDB.open('ChurchAdminDB', 3);
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
       const oldVersion = e.oldVersion;
@@ -243,28 +263,29 @@ function openDB() {
       }
 
       if (oldVersion < 2) {
-        // v2: 為 events 加入 activityId index
         if (db.objectStoreNames.contains('events')) {
           const tx = e.target.transaction;
           const es = tx.objectStore('events');
-          if (!es.indexNames.contains('activityId')) {
-            es.createIndex('activityId', 'activityId', { unique: false });
-          }
+          if (!es.indexNames.contains('activityId')) es.createIndex('activityId', 'activityId', { unique: false });
         }
-        // v2: 為 expenseRequests 加入 activityId index
         if (db.objectStoreNames.contains('expenseRequests')) {
           const tx2 = e.target.transaction;
           const es2 = tx2.objectStore('expenseRequests');
-          if (!es2.indexNames.contains('activityId')) {
-            es2.createIndex('activityId', 'activityId', { unique: false });
-          }
+          if (!es2.indexNames.contains('activityId')) es2.createIndex('activityId', 'activityId', { unique: false });
+        }
+      }
+
+      if (oldVersion < 3) {
+        // v3: annualPlans store
+        if (!db.objectStoreNames.contains('annualPlans')) {
+          const aps = db.createObjectStore('annualPlans', { keyPath: 'id', autoIncrement: true });
+          aps.createIndex('userId', 'userId', { unique: false });
+          aps.createIndex('month', 'month', { unique: false });
+          aps.createIndex('year', 'year', { unique: false });
         }
       }
     };
-    req.onsuccess = (e) => {
-      APP.db = e.target.result;
-      resolve(APP.db);
-    };
+    req.onsuccess = (e) => { APP.db = e.target.result; resolve(APP.db); };
     req.onerror = () => reject(req.error);
   });
 }
@@ -278,7 +299,6 @@ function dbPut(storeName, data) {
     req.onerror = () => reject(req.error);
   });
 }
-
 function dbGetAll(storeName) {
   return new Promise((resolve, reject) => {
     const tx = APP.db.transaction(storeName, 'readonly');
@@ -288,7 +308,6 @@ function dbGetAll(storeName) {
     req.onerror = () => reject(req.error);
   });
 }
-
 function dbDelete(storeName, id) {
   return new Promise((resolve, reject) => {
     const tx = APP.db.transaction(storeName, 'readwrite');
@@ -298,7 +317,6 @@ function dbDelete(storeName, id) {
     req.onerror = () => reject(req.error);
   });
 }
-
 function dbGetByIndex(storeName, indexName, value) {
   return new Promise((resolve, reject) => {
     const tx = APP.db.transaction(storeName, 'readonly');
@@ -310,13 +328,18 @@ function dbGetByIndex(storeName, indexName, value) {
   });
 }
 
-// ─── 種子數據 v2 ───
+// ─── 種子數據 v3（擴充假別額度）───
 const SEED_USERS = [
-  { id: 'u1', name: '陳牧師', role: 'staff', annualLeave: 14, compLeave: 0, sickLeave: 30 },
-  { id: 'u2', name: '李傳道', role: 'staff', annualLeave: 12, compLeave: 2, sickLeave: 30 },
-  { id: 'u3', name: '王傳道', role: 'staff', annualLeave: 10, compLeave: 0, sickLeave: 30 },
-  { id: 'u4', name: '張姑娘', role: 'staff', annualLeave: 14, compLeave: 3, sickLeave: 30 },
-  { id: 'admin1', name: '行政主任', role: 'admin', annualLeave: 18, compLeave: 0, sickLeave: 30 }
+  { id: 'u1', name: '陳牧師', role: 'staff',
+    leaveQuota: { annual:14, rest:0, compensation:0, sick:30, injury:0, maternity:0, marriage:3, compassionate:3 } },
+  { id: 'u2', name: '李傳道', role: 'staff',
+    leaveQuota: { annual:12, rest:0, compensation:2, sick:30, injury:0, maternity:0, marriage:3, compassionate:3 } },
+  { id: 'u3', name: '王傳道', role: 'staff',
+    leaveQuota: { annual:10, rest:0, compensation:0, sick:30, injury:0, maternity:0, marriage:3, compassionate:3 } },
+  { id: 'u4', name: '張姑娘', role: 'staff',
+    leaveQuota: { annual:14, rest:0, compensation:3, sick:30, injury:0, maternity:0, marriage:3, compassionate:3 } },
+  { id: 'admin1', name: '行政主任', role: 'admin',
+    leaveQuota: { annual:18, rest:0, compensation:0, sick:30, injury:0, maternity:0, marriage:3, compassionate:3 } }
 ];
 
 async function seedData() {
@@ -330,21 +353,40 @@ async function seedData() {
     // 請假
     await dbPut('leaveRequests', { id: 1, userId: 'u1', type: 'annual', startDate: '2026-06-15', endDate: '2026-06-17', reason: '家庭旅行', status: 'pending', createdAt: Date.now() });
     await dbPut('leaveRequests', { id: 2, userId: 'u2', type: 'sick', startDate: '2026-06-10', endDate: '2026-06-10', reason: '身體不適', status: 'approved', createdAt: Date.now() - 86400000 });
-    // 報銷 (v2: 加入 activityId)
+    // 報銷
     await dbPut('expenseRequests', { id: 1, userId: 'u1', category: 'travel', amount: 1500, description: '探訪會友交通費', status: 'pending', activityId: null, createdAt: Date.now() });
     await dbPut('expenseRequests', { id: 2, userId: 'u3', category: 'stationery', amount: 320, description: '主日學教材印刷', status: 'approved', activityId: null, createdAt: Date.now() - 172800000 });
-    // 日程 (v2: 加入 ministryCategory, hours, activityId)
+    // 日程
     await dbPut('events', { id: 1, userId: 'u1', title: '主日崇拜講道', date: '2026-06-14', type: 'meeting', time: '10:00', ministryCategory: 'shepherd', hours: 4, activityId: null });
     await dbPut('events', { id: 2, userId: 'u1', title: '同工行政會議', date: '2026-06-16', type: 'meeting', time: '14:30', ministryCategory: 'admin', hours: 2, activityId: null });
     await dbPut('events', { id: 3, userId: 'u1', title: '探訪陳弟兄', date: '2026-06-18', type: 'activity', time: '15:00', ministryCategory: 'shepherd', hours: 2, activityId: null });
     await dbPut('events', { id: 4, userId: 'u1', title: '神學進修課程', date: '2026-06-20', type: 'personal', time: '09:00', ministryCategory: 'grow', hours: 6, activityId: null });
     await dbPut('events', { id: 5, userId: 'u1', title: '佈道會籌備會議', date: '2026-06-22', type: 'meeting', time: '10:00', ministryCategory: 'admin', hours: 3, activityId: 1 });
-    // u2 events
     await dbPut('events', { id: 6, userId: 'u2', title: '青年團契', date: '2026-06-15', type: 'activity', time: '19:00', ministryCategory: 'shepherd', hours: 3, activityId: null });
     await dbPut('events', { id: 7, userId: 'u2', title: '行政文書處理', date: '2026-06-16', type: 'meeting', time: '09:00', ministryCategory: 'admin', hours: 4, activityId: null });
     await dbPut('events', { id: 8, userId: 'u3', title: '查經班', date: '2026-06-17', type: 'activity', time: '20:00', ministryCategory: 'shepherd', hours: 2, activityId: null });
     await dbPut('events', { id: 9, userId: 'u4', title: '探訪長者', date: '2026-06-19', type: 'activity', time: '14:00', ministryCategory: 'shepherd', hours: 3, activityId: null });
+    // 年度計劃種子
+    await dbPut('annualPlans', { id: 1, userId: 'u1', year: 2026, month: 7, name: '夏季佈道會講道', ministryCategory: 'shepherd', activityId: 1, energyPct: 30 });
+    await dbPut('annualPlans', { id: 2, userId: 'u1', year: 2026, month: 5, name: '同工退修會', ministryCategory: 'grow', activityId: null, energyPct: 15 });
+    await dbPut('annualPlans', { id: 3, userId: 'u1', year: 2026, month: 9, name: '培靈會籌備', ministryCategory: 'admin', activityId: 2, energyPct: 25 });
+    await dbPut('annualPlans', { id: 4, userId: 'u2', year: 2026, month: 7, name: '青年佈道', ministryCategory: 'shepherd', activityId: 1, energyPct: 20 });
   }
+}
+
+// ─── 取得用戶完整數據（含 leaveQuota）───
+async function getUserData(userId) {
+  const users = await dbGetAll('users');
+  const u = users.find(x => x.id === userId);
+  if (!u) return null;
+  // 確保有 leaveQuota
+  if (!u.leaveQuota) {
+    u.leaveQuota = {};
+    for (const k of Object.keys(LEAVE_TYPES)) {
+      u.leaveQuota[k] = LEAVE_TYPES[k].defaultQuota;
+    }
+  }
+  return u;
 }
 
 // ─── 登入 ───
@@ -378,29 +420,22 @@ async function switchRole() {
     APP.currentUser = users.find(u => u.role === 'staff' && u.id === 'u1');
   }
   APP.currentTab = APP.currentRole === 'admin' ? 'approvals' : 'calendar';
-  APP.biPeriod = 'month';
-  APP.biActivityId = null;
+  APP.biPeriod = 'month'; APP.biActivityId = null; APP.planViewYear = new Date().getFullYear();
   updateTopBar();
   renderMainContent();
   showToast('已切換為' + (APP.currentRole === 'admin' ? '管理員' : '同工') + '版面', 'success');
 }
 
 function logout() {
-  APP.currentRole = null;
-  APP.currentUser = null;
-  APP.currentTab = 'calendar';
+  APP.currentRole = null; APP.currentUser = null; APP.currentTab = 'calendar';
   document.getElementById('app').classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
 }
 
-// ─── 主渲染 ───
 function renderMainContent() {
   const container = document.getElementById('mainContent');
-  if (APP.currentRole === 'admin') {
-    container.innerHTML = renderAdminView();
-  } else {
-    container.innerHTML = renderStaffView();
-  }
+  if (APP.currentRole === 'admin') container.innerHTML = renderAdminView();
+  else container.innerHTML = renderStaffView();
   bindTabEvents();
   setTimeout(() => {
     if (APP.currentRole === 'staff') loadStaffData();
@@ -416,6 +451,7 @@ function renderStaffView() {
   return `
     <div class="tab-nav" id="staffTabs">
       <button class="tab-btn active" data-tab="calendar">📅 日程月曆</button>
+      <button class="tab-btn" data-tab="annualPlan">🗓️ 年度計劃</button>
       <button class="tab-btn" data-tab="leave">🏖️ 假期管理</button>
       <button class="tab-btn" data-tab="expense">💰 報銷申請</button>
       <button class="tab-btn" data-tab="analytics">📊 我的焦點看板</button>
@@ -428,13 +464,14 @@ function loadStaffData() {
   const tab = APP.currentTab || 'calendar';
   switch (tab) {
     case 'calendar': renderCalendar(); break;
+    case 'annualPlan': renderAnnualPlan(); break;
     case 'leave': renderLeave(); break;
     case 'expense': renderExpense(); break;
     case 'analytics': renderStaffAnalytics(); break;
   }
 }
 
-// ─── 日程月曆 (v2 升級：三維度分類 + 活動綁定 + ICS 匯出) ───
+// ─── 日程月曆（保持）───
 function renderCalendar() {
   const now = new Date();
   const year = now.getFullYear();
@@ -467,9 +504,6 @@ function renderCalendar() {
           </div>
         </div>
         ${calHTML}
-        <div class="flex gap-4 mt-4 text-xs text-muted">
-          <span>🐑 牧養</span><span>📋 非牧養</span><span>📚 進修</span>
-        </div>
       </div>
       <div class="card">
         <h3 class="section-title">📋 今日日程</h3>
@@ -487,12 +521,10 @@ async function loadCalendarEvents(year, month) {
   const events = await dbGetByIndex('events', 'userId', APP.currentUser.id);
   const monthPrefix = `${year}-${String(month+1).padStart(2,'0')}`;
   const monthEvents = events.filter(e => e.date.startsWith(monthPrefix));
-
   const eventDates = new Set(monthEvents.map(e => e.date));
   document.querySelectorAll('.calendar-day[data-date]').forEach(el => {
     if (eventDates.has(el.dataset.date)) el.classList.add('has-event');
   });
-
   const today = `${year}-${String(month+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`;
   const todayEvents = events.filter(e => e.date === today);
   const todayEl = document.getElementById('todayEvents');
@@ -501,25 +533,16 @@ async function loadCalendarEvents(year, month) {
   } else {
     todayEl.innerHTML = todayEvents.map(e => {
       const cat = MINISTRY_CATEGORIES[e.ministryCategory];
-      return `<div class="event-item" onclick="editEvent(${e.id})">
-        <span class="event-dot ${e.type || 'meeting'}"></span>
-        <span style="flex:1">${e.title}</span>
-        <span class="text-xs ${cat ? cat.cls : ''}">${cat ? cat.label.slice(0,4) : ''} ${e.hours||0}h</span>
-      </div>`;
+      return `<div class="event-item" onclick="editEvent(${e.id})"><span class="event-dot ${e.type||'meeting'}"></span><span style="flex:1">${e.title}</span><span class="text-xs ${cat?cat.cls:''}">${cat?cat.label.slice(0,4):''} ${e.hours||0}h</span></div>`;
     }).join('');
   }
-
   const monthEl = document.getElementById('monthEvents');
   if (monthEvents.length === 0) {
     monthEl.innerHTML = '<p class="text-muted text-sm">本月暫無事件</p>';
   } else {
-    monthEl.innerHTML = monthEvents.sort((a,b) => a.date.localeCompare(b.date)).map(e => {
+    monthEl.innerHTML = monthEvents.sort((a,b)=>a.date.localeCompare(b.date)).map(e => {
       const cat = MINISTRY_CATEGORIES[e.ministryCategory];
-      return `<div class="event-item" onclick="editEvent(${e.id})">
-        <span class="event-dot ${e.type || 'meeting'}"></span>
-        <span style="flex:1">${e.title}</span>
-        <span class="text-xs text-muted">${e.date.slice(5)} ${cat ? cat.label.slice(0,4) : ''}</span>
-      </div>`;
+      return `<div class="event-item" onclick="editEvent(${e.id})"><span class="event-dot ${e.type||'meeting'}"></span><span style="flex:1">${e.title}</span><span class="text-xs text-muted">${e.date.slice(5)} ${cat?cat.label.slice(0,4):''}</span></div>`;
     }).join('');
   }
 }
@@ -529,71 +552,31 @@ async function showDayEvents(dateStr) {
   const dayEvents = events.filter(e => e.date === dateStr);
   let listHTML = dayEvents.map(e => {
     const cat = MINISTRY_CATEGORIES[e.ministryCategory];
-    return `<div class="event-item" style="justify-content:space-between">
-      <span><span class="event-dot ${e.type || 'meeting'} mr-2"></span>${e.title} ${e.time ? '('+e.time+')' : ''} <span class="text-xs ${cat?cat.cls:''}">${cat?cat.label:''} ${e.hours||0}h</span></span>
-      <button class="btn btn-danger btn-sm" onclick="deleteEvent(${e.id});closeModal()">刪除</button>
-    </div>`;
+    return `<div class="event-item" style="justify-content:space-between"><span><span class="event-dot ${e.type||'meeting'} mr-2"></span>${e.title} ${e.time?'('+e.time+')':''} <span class="text-xs ${cat?cat.cls:''}">${cat?cat.label:''} ${e.hours||0}h</span></span><button class="btn btn-danger btn-sm" onclick="deleteEvent(${e.id});closeModal()">刪除</button></div>`;
   }).join('');
   if (!listHTML) listHTML = '<p class="text-muted text-sm">當日暫無事件</p>';
-  showModal(`
-    <h3 class="text-lg font-bold mb-3">📅 ${dateStr} 日程</h3>
-    ${listHTML}
-    <button class="btn btn-primary btn-sm mt-3" onclick="closeModal();openEventModal('${dateStr}')">＋ 新增事件</button>
-  `);
+  showModal(`<h3 class="text-lg font-bold mb-3">📅 ${dateStr} 日程</h3>${listHTML}<button class="btn btn-primary btn-sm mt-3" onclick="closeModal();openEventModal('${dateStr}')">＋ 新增事件</button>`);
 }
 
-// ─── 事件 Modal (v2: 三維度 + 活動綁定 + 工時) ───
 async function openEventModal(prefillDate) {
   const activities = await dbGetAll('activities');
   const actOpts = '<option value="">（無）</option>' + activities.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
-
   const catRadios = Object.entries(MINISTRY_CATEGORIES).map(([key, val]) =>
-    `<label class="radio-card ${key==='shepherd'?'selected':''}" data-cat="${key}" onclick="selectRadio(this)">
-      <input type="radio" name="ministryCategory" value="${key}" ${key==='shepherd'?'checked':''}>${val.label}
-      <div class="text-xs text-muted mt-1">${val.examples}</div>
-    </label>`
+    `<label class="radio-card ${key==='shepherd'?'selected':''}" data-cat="${key}" onclick="selectRadio(this)"><input type="radio" name="ministryCategory" value="${key}" ${key==='shepherd'?'checked':''}>${val.label}<div class="text-xs text-muted mt-1">${val.examples}</div></label>`
   ).join('');
-
   showModal(`
     <h3 class="text-lg font-bold mb-3">新增事件</h3>
-    <div class="mb-3">
-      <label class="label">事件標題</label>
-      <input class="input" id="eventTitle" placeholder="例如：主日崇拜">
-    </div>
-    <div class="grid grid-cols-3 gap-3 mb-3">
-      <div><label class="label">日期</label><input class="input" type="date" id="eventDate" value="${prefillDate || ''}"></div>
-      <div><label class="label">時間</label><input class="input" type="time" id="eventTime" value="10:00"></div>
-      <div><label class="label">預計工時 (小時)</label><input class="input" type="number" id="eventHours" min="0.5" max="24" step="0.5" value="2"></div>
-    </div>
-    <div class="mb-3">
-      <label class="label">事工分類（三維度分配）</label>
-      <div class="radio-group" id="ministryRadioGroup">${catRadios}</div>
-    </div>
-    <div class="grid grid-cols-2 gap-3 mb-4">
-      <div>
-        <label class="label">事件類型</label>
-        <select class="select" id="eventType">
-          <option value="meeting">會議</option>
-          <option value="activity">活動</option>
-          <option value="personal">個人</option>
-        </select>
-      </div>
-      <div>
-        <label class="label">關聯年度活動</label>
-        <select class="select" id="eventActivityId">${actOpts}</select>
-      </div>
-    </div>
-    <div class="flex gap-2">
-      <button class="btn btn-primary btn-block" onclick="saveEvent()">儲存</button>
-      <button class="btn btn-outline" onclick="closeModal()">取消</button>
-    </div>
+    <div class="mb-3"><label class="label">事件標題</label><input class="input" id="eventTitle" placeholder="例如：主日崇拜"></div>
+    <div class="grid grid-cols-3 gap-3 mb-3"><div><label class="label">日期</label><input class="input" type="date" id="eventDate" value="${prefillDate||''}"></div><div><label class="label">時間</label><input class="input" type="time" id="eventTime" value="10:00"></div><div><label class="label">預計工時 (小時)</label><input class="input" type="number" id="eventHours" min="0.5" max="24" step="0.5" value="2"></div></div>
+    <div class="mb-3"><label class="label">事工分類（三維度分配）</label><div class="radio-group" id="ministryRadioGroup">${catRadios}</div></div>
+    <div class="grid grid-cols-2 gap-3 mb-4"><div><label class="label">事件類型</label><select class="select" id="eventType"><option value="meeting">會議</option><option value="activity">活動</option><option value="personal">個人</option></select></div><div><label class="label">關聯年度活動</label><select class="select" id="eventActivityId">${actOpts}</select></div></div>
+    <div class="flex gap-2"><button class="btn btn-primary btn-block" onclick="saveEvent()">儲存</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>
   `);
 }
 
 function selectRadio(el) {
   el.parentElement.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  el.querySelector('input').checked = true;
+  el.classList.add('selected'); el.querySelector('input').checked = true;
 }
 
 async function saveEvent() {
@@ -608,9 +591,7 @@ async function saveEvent() {
   const ministryCategory = ministryRadio ? ministryRadio.value : 'shepherd';
   if (!title || !date) { showToast('請填寫標題和日期', 'error'); return; }
   await dbPut('events', { userId: APP.currentUser.id, title, date, time, hours, type, ministryCategory, activityId });
-  closeModal();
-  loadStaffData();
-  showToast('事件已新增 ✓', 'success');
+  closeModal(); loadStaffData(); showToast('事件已新增 ✓', 'success');
 }
 
 async function editEvent(id) {
@@ -619,34 +600,15 @@ async function editEvent(id) {
   if (!ev) return;
   const actOpts = '<option value="">（無）</option>' + activities.map(a => `<option value="${a.id}" ${ev.activityId===a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
   const catRadios = Object.entries(MINISTRY_CATEGORIES).map(([key, val]) =>
-    `<label class="radio-card ${key===ev.ministryCategory?'selected':''}" data-cat="${key}" onclick="selectRadio(this)">
-      <input type="radio" name="ministryCategory" value="${key}" ${key===ev.ministryCategory?'checked':''}>${val.label}
-      <div class="text-xs text-muted mt-1">${val.examples}</div>
-    </label>`
+    `<label class="radio-card ${key===ev.ministryCategory?'selected':''}" data-cat="${key}" onclick="selectRadio(this)"><input type="radio" name="ministryCategory" value="${key}" ${key===ev.ministryCategory?'checked':''}>${val.label}<div class="text-xs text-muted mt-1">${val.examples}</div></label>`
   ).join('');
-
   showModal(`
     <h3 class="text-lg font-bold mb-3">編輯事件</h3>
     <div class="mb-3"><label class="label">事件標題</label><input class="input" id="eventTitle" value="${escapeHtml(ev.title)}"></div>
-    <div class="grid grid-cols-3 gap-3 mb-3">
-      <div><label class="label">日期</label><input class="input" type="date" id="eventDate" value="${ev.date}"></div>
-      <div><label class="label">時間</label><input class="input" type="time" id="eventTime" value="${ev.time||''}"></div>
-      <div><label class="label">預計工時</label><input class="input" type="number" id="eventHours" min="0.5" max="24" step="0.5" value="${ev.hours||2}"></div>
-    </div>
+    <div class="grid grid-cols-3 gap-3 mb-3"><div><label class="label">日期</label><input class="input" type="date" id="eventDate" value="${ev.date}"></div><div><label class="label">時間</label><input class="input" type="time" id="eventTime" value="${ev.time||''}"></div><div><label class="label">預計工時</label><input class="input" type="number" id="eventHours" min="0.5" max="24" step="0.5" value="${ev.hours||2}"></div></div>
     <div class="mb-3"><label class="label">事工分類</label><div class="radio-group" id="ministryRadioGroup">${catRadios}</div></div>
-    <div class="grid grid-cols-2 gap-3 mb-4">
-      <div><label class="label">事件類型</label><select class="select" id="eventType">
-        <option value="meeting" ${ev.type==='meeting'?'selected':''}>會議</option>
-        <option value="activity" ${ev.type==='activity'?'selected':''}>活動</option>
-        <option value="personal" ${ev.type==='personal'?'selected':''}>個人</option>
-      </select></div>
-      <div><label class="label">關聯年度活動</label><select class="select" id="eventActivityId">${actOpts}</select></div>
-    </div>
-    <div class="flex gap-2">
-      <button class="btn btn-primary" style="flex:1" onclick="updateEvent(${id})">更新</button>
-      <button class="btn btn-danger" onclick="deleteEvent(${id});closeModal()">刪除</button>
-      <button class="btn btn-outline" onclick="closeModal()">取消</button>
-    </div>
+    <div class="grid grid-cols-2 gap-3 mb-4"><div><label class="label">事件類型</label><select class="select" id="eventType"><option value="meeting" ${ev.type==='meeting'?'selected':''}>會議</option><option value="activity" ${ev.type==='activity'?'selected':''}>活動</option><option value="personal" ${ev.type==='personal'?'selected':''}>個人</option></select></div><div><label class="label">關聯年度活動</label><select class="select" id="eventActivityId">${actOpts}</select></div></div>
+    <div class="flex gap-2"><button class="btn btn-primary" style="flex:1" onclick="updateEvent(${id})">更新</button><button class="btn btn-danger" onclick="deleteEvent(${id});closeModal()">刪除</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>
   `);
 }
 
@@ -662,16 +624,10 @@ async function updateEvent(id) {
   const ministryCategory = ministryRadio ? ministryRadio.value : 'shepherd';
   if (!title || !date) { showToast('請填寫標題和日期', 'error'); return; }
   await dbPut('events', { id, userId: APP.currentUser.id, title, date, time, hours, type, ministryCategory, activityId });
-  closeModal();
-  loadStaffData();
-  showToast('事件已更新 ✓', 'success');
+  closeModal(); loadStaffData(); showToast('事件已更新 ✓', 'success');
 }
 
-async function deleteEvent(id) {
-  await dbDelete('events', id);
-  loadStaffData();
-  showToast('事件已刪除', 'success');
-}
+async function deleteEvent(id) { await dbDelete('events', id); loadStaffData(); showToast('事件已刪除', 'success'); }
 
 // ─── ICS 匯出 ───
 async function exportICS() {
@@ -680,54 +636,194 @@ async function exportICS() {
   let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//ChurchAdmin//CN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';
   events.forEach(e => {
     const dtStart = e.date.replace(/-/g,'') + 'T' + (e.time||'000000').replace(/:/g,'') + '00';
-    const dtEnd = e.date.replace(/-/g,'') + 'T' + (e.time||'000000').replace(/:/g,'') + '00'; // 簡化：無自動計算結束
+    const dtEnd = e.date.replace(/-/g,'') + 'T' + (e.time||'000000').replace(/:/g,'') + '00';
     const cat = MINISTRY_CATEGORIES[e.ministryCategory];
-    const summary = `[${cat ? cat.label.slice(0,4) : ''}] ${e.title}`;
-    ics += 'BEGIN:VEVENT\r\n';
-    ics += `DTSTART:${dtStart}\r\n`;
-    ics += `DTEND:${dtEnd}\r\n`;
-    ics += `SUMMARY:${summary}\r\n`;
-    ics += `DESCRIPTION:工時 ${e.hours||0}h | 分類 ${e.ministryCategory||''}\r\n`;
-    ics += 'END:VEVENT\r\n';
+    ics += 'BEGIN:VEVENT\r\nDTSTART:' + dtStart + '\r\nDTEND:' + dtEnd + '\r\nSUMMARY:' + (cat?cat.label.slice(0,4):'') + ' ' + e.title + '\r\nDESCRIPTION:工時 ' + (e.hours||0) + 'h | 分類 ' + (e.ministryCategory||'') + '\r\nEND:VEVENT\r\n';
   });
   ics += 'END:VCALENDAR\r\n';
   const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `church-calendar-${APP.currentUser.name}.ics`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; a.download = 'church-calendar-' + APP.currentUser.name + '.ics'; a.click(); URL.revokeObjectURL(url);
   showToast('📥 日曆已導出，可匯入 Outlook/Google/Apple Calendar', 'success');
 }
 
-// ─── 假期管理 (保持不變) ───
-async function renderLeave() {
-  const user = APP.currentUser;
-  const leaves = await dbGetByIndex('leaveRequests', 'userId', user.id);
-  const approved = leaves.filter(l => l.status === 'approved');
-  let usedAnnual = 0, usedComp = 0;
-  approved.forEach(l => {
-    const days = daysBetween(l.startDate, l.endDate);
-    if (l.type === 'annual') usedAnnual += days;
-    else if (l.type === 'comp') usedComp += days;
-  });
-  const remainAnnual = Math.max(0, (user.annualLeave || 0) - usedAnnual);
-  const remainComp = Math.max(0, (user.compLeave || 0) - usedComp);
-  const remainSick = Math.max(0, (user.sickLeave || 30));
+// ═══════════════════════════════════════════
+//  🆕 年度計劃 (Annual Plan) — 員工端
+// ═══════════════════════════════════════════
+async function renderAnnualPlan() {
+  const year = APP.planViewYear;
+  const [plans, activities] = await Promise.all([
+    dbGetByIndex('annualPlans', 'userId', APP.currentUser.id),
+    dbGetAll('activities')
+  ]);
+  const actMap = {}; activities.forEach(a => { actMap[a.id] = a.name; });
+  const yearPlans = plans.filter(p => p.year === year);
+
+  // 每月計劃數量
+  const monthCounts = new Array(13).fill(0);
+  yearPlans.forEach(p => { if (p.month >= 1 && p.month <= 12) monthCounts[p.month]++; });
+
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 
   document.getElementById('staffTabContent').innerHTML = `
-    <div class="grid grid-cols-4 gap-4 mb-6">
-      <div class="stat-card"><div class="stat-value">${remainAnnual}</div><div class="stat-label">剩餘年假 (共${user.annualLeave||0}天)</div><div class="progress-bar mt-2"><div class="progress-fill progress-${remainAnnual>3?'success':'warning'}" style="width:${(remainAnnual/(user.annualLeave||14))*100}%"></div></div></div>
-      <div class="stat-card"><div class="stat-value">${remainComp}</div><div class="stat-label">剩餘補假 (共${user.compLeave||0}天)</div></div>
-      <div class="stat-card"><div class="stat-value">${remainSick}</div><div class="stat-label">剩餘病假</div></div>
-      <div class="stat-card"><div class="stat-value">${leaves.filter(l=>l.status==='pending').length}</div><div class="stat-label">待審批申請</div></div>
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <button class="btn btn-outline btn-sm" onclick="APP.planViewYear--;renderAnnualPlan()">◀</button>
+        <h3 class="text-xl font-bold">${year} 年度工作計劃</h3>
+        <button class="btn btn-outline btn-sm" onclick="APP.planViewYear++;renderAnnualPlan()">▶</button>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openAnnualPlanModal()">＋ 新增年度計劃</button>
+    </div>
+
+    <div class="card mb-4">
+      <h3 class="section-title">📅 1-12月宏觀總覽</h3>
+      <div class="annual-timeline">
+        ${monthNames.map((m, i) => {
+          const count = monthCounts[i+1];
+          return `<div class="annual-month ${count>0?'has-plan':''}" onclick="scrollToMonth(${i+1})">
+            <div class="m-label">${m}</div>
+            <div class="m-count">${count>0?count+' 項計劃':'—'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="flex gap-4 text-xs text-muted"><span>🐑 牧養</span><span>📋 非牧養</span><span>📚 進修</span></div>
+    </div>
+
+    <div class="card">
+      <h3 class="section-title">📋 計劃清單（${yearPlans.length} 項）</h3>
+      ${renderAnnualPlanTable(yearPlans, actMap)}
+    </div>
+  `;
+}
+
+function renderAnnualPlanTable(plans, actMap) {
+  if (plans.length === 0) return '<p class="text-muted text-sm">暫無年度計劃，請點擊「＋ 新增年度計劃」開始規劃。</p>';
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  return `<table class="table"><thead><tr><th>月份</th><th>計劃名稱</th><th>事工分類</th><th>關聯活動</th><th>精力%</th><th>操作</th></tr></thead>
+    <tbody>${plans.sort((a,b) => a.month - b.month).map(p => {
+      const cat = MINISTRY_CATEGORIES[p.ministryCategory];
+      const catBadge = p.ministryCategory === 'shepherd' ? 'badge-shepherd' : p.ministryCategory === 'admin' ? 'badge-admin-task' : 'badge-grow';
+      return `<tr id="plan-row-${p.month}">
+        <td class="font-semibold">${monthNames[p.month-1]}</td>
+        <td>${escapeHtml(p.name)}</td>
+        <td><span class="badge ${catBadge}">${cat?cat.label.slice(0,8):''}</span></td>
+        <td class="text-sm text-muted">${p.activityId&&actMap[p.activityId]?actMap[p.activityId]:'—'}</td>
+        <td><div class="progress-bar" style="width:60px"><div class="progress-fill progress-${p.energyPct>70?'danger':p.energyPct>40?'warning':'success'}" style="width:${p.energyPct}%"></div></div><span class="text-xs ml-2">${p.energyPct}%</span></td>
+        <td><button class="btn btn-outline btn-sm mr-2" onclick="editAnnualPlan(${p.id})">編輯</button><button class="btn btn-danger btn-sm" onclick="deleteAnnualPlan(${p.id})">刪除</button></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function scrollToMonth(m) {
+  const row = document.getElementById('plan-row-' + m);
+  if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function openAnnualPlanModal(prefillId) {
+  const [activities, allPlans] = await Promise.all([dbGetAll('activities'), dbGetAll('annualPlans')]);
+  let existing = null;
+  if (prefillId) existing = allPlans.find(p => p.id === prefillId);
+
+  const actOpts = '<option value="">（無）</option>' + activities.map(a => `<option value="${a.id}" ${existing&&existing.activityId===a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
+  const monthOpts = Array.from({length:12}, (_,i) => `<option value="${i+1}" ${existing&&existing.month===i+1?'selected':''}>${i+1}月</option>`).join('');
+  const catRadios = Object.entries(MINISTRY_CATEGORIES).map(([key, val]) => {
+    const sel = (existing ? existing.ministryCategory : 'shepherd') === key;
+    return `<label class="radio-card ${sel?'selected':''}" data-cat="${key}" onclick="selectRadio(this)"><input type="radio" name="ministryCategory" value="${key}" ${sel?'checked':''}>${val.label}<div class="text-xs text-muted mt-1">${val.examples}</div></label>`;
+  }).join('');
+
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">${existing?'編輯':'新增'}年度計劃</h3>
+    <div class="mb-3"><label class="label">計劃名稱</label><input class="input" id="planName" value="${existing?escapeHtml(existing.name):''}" placeholder="例如：10月佈道會"></div>
+    <div class="grid grid-cols-3 gap-3 mb-3">
+      <div><label class="label">對應月份</label><select class="select" id="planMonth">${monthOpts}</select></div>
+      <div><label class="label">關聯年度活動</label><select class="select" id="planActivityId">${actOpts}</select></div>
+      <div><label class="label">預計投入精力 (%)</label><input class="input" type="number" id="planEnergy" min="1" max="100" value="${existing?existing.energyPct:20}"></div>
+    </div>
+    <div class="mb-4"><label class="label">事工分類</label><div class="radio-group" id="ministryRadioGroup">${catRadios}</div></div>
+    <div class="flex gap-2">
+      <button class="btn btn-primary btn-block" onclick="${existing?'updateAnnualPlan('+existing.id+')':'saveAnnualPlan()'}">儲存</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  `);
+}
+
+async function saveAnnualPlan() {
+  const name = document.getElementById('planName').value.trim();
+  const month = parseInt(document.getElementById('planMonth').value);
+  const activityIdVal = document.getElementById('planActivityId').value;
+  const activityId = activityIdVal ? parseInt(activityIdVal) : null;
+  const energyPct = parseInt(document.getElementById('planEnergy').value) || 20;
+  const ministryRadio = document.querySelector('input[name="ministryCategory"]:checked');
+  const ministryCategory = ministryRadio ? ministryRadio.value : 'shepherd';
+  if (!name) { showToast('請填寫計劃名稱', 'error'); return; }
+  await dbPut('annualPlans', { userId: APP.currentUser.id, year: APP.planViewYear, month, name, ministryCategory, activityId, energyPct });
+  closeModal(); renderAnnualPlan(); showToast('年度計劃已新增 ✓', 'success');
+}
+
+async function editAnnualPlan(id) { openAnnualPlanModal(id); }
+
+async function updateAnnualPlan(id) {
+  const name = document.getElementById('planName').value.trim();
+  const month = parseInt(document.getElementById('planMonth').value);
+  const activityIdVal = document.getElementById('planActivityId').value;
+  const activityId = activityIdVal ? parseInt(activityIdVal) : null;
+  const energyPct = parseInt(document.getElementById('planEnergy').value) || 20;
+  const ministryRadio = document.querySelector('input[name="ministryCategory"]:checked');
+  const ministryCategory = ministryRadio ? ministryRadio.value : 'shepherd';
+  if (!name) { showToast('請填寫計劃名稱', 'error'); return; }
+  await dbPut('annualPlans', { id, userId: APP.currentUser.id, year: APP.planViewYear, month, name, ministryCategory, activityId, energyPct });
+  closeModal(); renderAnnualPlan(); showToast('年度計劃已更新 ✓', 'success');
+}
+
+async function deleteAnnualPlan(id) { await dbDelete('annualPlans', id); renderAnnualPlan(); showToast('年度計劃已刪除', 'success'); }
+
+// ═══════════════════════════════════════════
+//  🆕 假期管理 v3 — 8 種完整假別
+// ═══════════════════════════════════════════
+async function renderLeave() {
+  const userData = await getUserData(APP.currentUser.id);
+  if (!userData) return;
+  const quota = userData.leaveQuota || {};
+  const leaves = await dbGetByIndex('leaveRequests', 'userId', APP.currentUser.id);
+
+  // 計算各假別已使用天數
+  const used = {};
+  for (const k of Object.keys(LEAVE_TYPES)) used[k] = 0;
+  leaves.filter(l => l.status === 'approved').forEach(l => {
+    const days = daysBetween(l.startDate, l.endDate);
+    if (used.hasOwnProperty(l.type)) used[l.type] += days;
+  });
+
+  // 剩餘額度卡片
+  const trackableTypes = Object.entries(LEAVE_TYPES).filter(([k,v]) => v.trackRemaining);
+  let quotaCards = '';
+  trackableTypes.forEach(([key, val]) => {
+    const remain = Math.max(0, (quota[key] || val.defaultQuota) - (used[key] || 0));
+    const total = quota[key] || val.defaultQuota;
+    quotaCards += `<div class="quota-item">
+      <div class="q-val">${remain}</div>
+      <div class="q-lbl">${val.icon} ${val.label}<br><span class="text-xs">(共${total}天)</span></div>
+      <div class="progress-bar mt-1"><div class="progress-fill progress-${remain>total*0.3?'success':'warning'}" style="width:${total>0?(remain/total*100):0}%"></div></div>
+    </div>`;
+  });
+
+  // 申請表單假別選項
+  const leaveTypeOpts = Object.entries(LEAVE_TYPES).map(([k,v]) => `<option value="${k}">${v.icon} ${v.label}</option>`).join('');
+
+  document.getElementById('staffTabContent').innerHTML = `
+    <div class="card mb-4">
+      <h3 class="section-title">📊 假期餘額總覽</h3>
+      <div class="quota-grid">${quotaCards}</div>
     </div>
     <div class="grid grid-cols-3 gap-4">
-      <div class="card" style="grid-column:span 2"><h3 class="section-title">📋 請假記錄</h3><div id="leaveList">${renderLeaveList(leaves)}</div></div>
-      <div class="card"><h3 class="section-title">✍️ 申請假期</h3>
-        <form onsubmit="submitLeave(event)" style="display:flex;flex-direction:column;gap:.75rem">
-          <div><label class="label">假期類型</label><select class="select" id="leaveType" required><option value="annual">年假</option><option value="comp">補假</option><option value="sick">病假</option><option value="other">其他</option></select></div>
+      <div class="card" style="grid-column:span 2">
+        <h3 class="section-title">📋 請假記錄</h3>
+        ${renderLeaveListV3(leaves)}
+      </div>
+      <div class="card">
+        <h3 class="section-title">✍️ 申請假期</h3>
+        <form onsubmit="submitLeaveV3(event)" style="display:flex;flex-direction:column;gap:.75rem">
+          <div><label class="label">假期類型</label><select class="select" id="leaveType" required>${leaveTypeOpts}</select></div>
           <div class="grid grid-cols-2 gap-3"><div><label class="label">開始日期</label><input class="input" type="date" id="leaveStart" required></div><div><label class="label">結束日期</label><input class="input" type="date" id="leaveEnd" required></div></div>
           <div><label class="label">原因</label><textarea class="textarea" id="leaveReason" placeholder="請簡述請假原因..."></textarea></div>
           <button class="btn btn-primary btn-block" type="submit">📤 提交申請</button>
@@ -737,17 +833,17 @@ async function renderLeave() {
   `;
 }
 
-function renderLeaveList(leaves) {
+function renderLeaveListV3(leaves) {
   if (leaves.length === 0) return '<p class="text-muted text-sm">暫無請假記錄</p>';
-  const typeLabels = { annual:'年假', comp:'補假', sick:'病假', other:'其他' };
-  const statusLabels = { pending:['待審批','warning'], approved:['已批准','success'], rejected:['已拒絕','danger'] };
   return `<table class="table"><thead><tr><th>類型</th><th>日期</th><th>天數</th><th>原因</th><th>狀態</th></tr></thead>
-    <tbody>${leaves.sort((a,b)=>b.createdAt-a.createdAt).map(l => `
-      <tr><td>${typeLabels[l.type]||l.type}</td><td>${l.startDate} 至 ${l.endDate}</td><td>${daysBetween(l.startDate,l.endDate)}天</td><td>${escapeHtml(l.reason||'')}</td><td><span class="badge badge-${statusLabels[l.status][1]}">${statusLabels[l.status][0]}</span></td></tr>
-    `).join('')}</tbody></table>`;
+    <tbody>${leaves.sort((a,b)=>b.createdAt-a.createdAt).map(l => {
+      const lt = LEAVE_TYPES[l.type] || { label: l.type, icon: '📋' };
+      const st = LEAVE_STATUS_LABELS[l.status] || ['未知','muted'];
+      return `<tr><td>${lt.icon} ${lt.label}</td><td>${l.startDate} 至 ${l.endDate}</td><td>${daysBetween(l.startDate,l.endDate)}天</td><td>${escapeHtml(l.reason||'')}</td><td><span class="badge badge-${st[1]}">${st[0]}</span></td></tr>`;
+    }).join('')}</tbody></table>`;
 }
 
-async function submitLeave(e) {
+async function submitLeaveV3(e) {
   e.preventDefault();
   const type = document.getElementById('leaveType').value;
   const startDate = document.getElementById('leaveStart').value;
@@ -756,25 +852,23 @@ async function submitLeave(e) {
   if (!startDate || !endDate) { showToast('請選擇日期', 'error'); return; }
   if (startDate > endDate) { showToast('結束日期不可早於開始日期', 'error'); return; }
   await dbPut('leaveRequests', { userId: APP.currentUser.id, type, startDate, endDate, reason, status: 'pending', createdAt: Date.now() });
-  loadStaffData();
-  showToast('假期申請已提交 ✓', 'success');
+  renderLeave(); showToast('假期申請已提交 ✓', 'success');
 }
 
-// ─── 報銷申請 (v2: 活動關聯) ───
+// ─── 報銷申請 ───
 async function renderExpense() {
   const [expenses, activities] = await Promise.all([
     dbGetByIndex('expenseRequests', 'userId', APP.currentUser.id),
     dbGetAll('activities')
   ]);
   const actOpts = '<option value="">（無）</option>' + activities.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
-
   document.getElementById('staffTabContent').innerHTML = `
     <div class="grid grid-cols-3 gap-4">
       <div class="card" style="grid-column:span 2"><h3 class="section-title">📋 報銷記錄</h3>${renderExpenseList(expenses, activities)}</div>
       <div class="card"><h3 class="section-title">✍️ 新增報銷</h3>
         <form onsubmit="submitExpense(event)" style="display:flex;flex-direction:column;gap:.75rem">
           <div><label class="label">報銷類別</label><select class="select" id="expenseCategory" required><option value="travel">🚗 差旅交通</option><option value="stationery">📎 文具用品</option><option value="meal">🍽️ 聚餐</option><option value="custom">📝 自定義項目</option></select></div>
-          <div><label class="label">自定義項目名稱 <span class="text-xs text-muted">(如選擇自定義)</span></label><input class="input" id="expenseCustomName" placeholder="例如：營會物資"></div>
+          <div><label class="label">自定義項目名稱</label><input class="input" id="expenseCustomName" placeholder="例如：營會物資"></div>
           <div><label class="label">關聯年度活動</label><select class="select" id="expenseActivityId">${actOpts}</select></div>
           <div><label class="label">金額 (HKD)</label><input class="input" type="number" id="expenseAmount" placeholder="0.00" min="0" step="0.01" required></div>
           <div><label class="label">描述</label><textarea class="textarea" id="expenseDesc" placeholder="請描述報銷詳情..."></textarea></div>
@@ -788,12 +882,9 @@ async function renderExpense() {
 function renderExpenseList(expenses, activities) {
   if (expenses.length === 0) return '<p class="text-muted text-sm">暫無報銷記錄</p>';
   const catLabels = { travel:'差旅交通', stationery:'文具用品', meal:'聚餐', custom:'自定義' };
-  const statusLabels = { pending:['待審批','warning'], approved:['已批准','success'], rejected:['已拒絕','danger'] };
   const actMap = {}; activities.forEach(a => { actMap[a.id] = a.name; });
   return `<table class="table"><thead><tr><th>類別</th><th>金額</th><th>關聯活動</th><th>描述</th><th>日期</th><th>狀態</th></tr></thead>
-    <tbody>${expenses.sort((a,b)=>b.createdAt-a.createdAt).map(e => `
-      <tr><td>${catLabels[e.category]||e.category}</td><td class="font-semibold">$${e.amount.toFixed(2)}</td><td class="text-sm text-muted">${e.activityId && actMap[e.activityId] ? actMap[e.activityId] : '—'}</td><td>${escapeHtml(e.description||'')}</td><td class="text-sm text-muted">${new Date(e.createdAt).toLocaleDateString('zh-HK')}</td><td><span class="badge badge-${statusLabels[e.status][1]}">${statusLabels[e.status][0]}</span></td></tr>
-    `).join('')}</tbody></table>`;
+    <tbody>${expenses.sort((a,b)=>b.createdAt-a.createdAt).map(e => `<tr><td>${catLabels[e.category]||e.category}</td><td class="font-semibold">$${e.amount.toFixed(2)}</td><td class="text-sm text-muted">${e.activityId&&actMap[e.activityId]?actMap[e.activityId]:'—'}</td><td>${escapeHtml(e.description||'')}</td><td class="text-sm text-muted">${new Date(e.createdAt).toLocaleDateString('zh-HK')}</td><td><span class="badge badge-${LEAVE_STATUS_LABELS[e.status][1]}">${LEAVE_STATUS_LABELS[e.status][0]}</span></td></tr>`).join('')}</tbody></table>`;
 }
 
 async function submitExpense(e) {
@@ -807,70 +898,34 @@ async function submitExpense(e) {
   if (!amount || amount <= 0) { showToast('請輸入有效金額', 'error'); return; }
   const displayCategory = category === 'custom' && customName ? customName : category;
   await dbPut('expenseRequests', { userId: APP.currentUser.id, category: displayCategory, amount, description, activityId, status: 'pending', createdAt: Date.now() });
-  loadStaffData();
-  showToast('報銷申請已提交 ✓', 'success');
+  renderExpense(); showToast('報銷申請已提交 ✓', 'success');
 }
 
-// ─── 員工 BI 分析 (v2 新增) ───
+// ─── 員工 BI 分析 ───
 async function renderStaffAnalytics() {
-  const [events, activities] = await Promise.all([
-    dbGetByIndex('events', 'userId', APP.currentUser.id),
-    dbGetAll('activities')
-  ]);
+  const [events, activities] = await Promise.all([dbGetByIndex('events', 'userId', APP.currentUser.id), dbGetAll('activities')]);
   const actMap = {}; activities.forEach(a => { actMap[a.id] = a.name; });
-
-  // 週期過濾
   const now = new Date();
   let periodStart;
-  if (APP.biPeriod === 'month') {
-    periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  } else if (APP.biPeriod === 'quarter') {
-    const q = Math.floor(now.getMonth() / 3);
-    periodStart = new Date(now.getFullYear(), q * 3, 1);
-  } else {
-    periodStart = new Date(now.getFullYear(), 0, 1);
-  }
+  if (APP.biPeriod === 'month') periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  else if (APP.biPeriod === 'quarter') { const q = Math.floor(now.getMonth()/3); periodStart = new Date(now.getFullYear(), q*3, 1); }
+  else periodStart = new Date(now.getFullYear(), 0, 1);
   const periodEvents = events.filter(e => new Date(e.date) >= periodStart);
-
-  // 三維度工時統計
-  const dimHours = { shepherd: 0, admin: 0, grow: 0 };
-  periodEvents.forEach(e => {
-    if (dimHours.hasOwnProperty(e.ministryCategory)) {
-      dimHours[e.ministryCategory] += (e.hours || 0);
-    }
-  });
+  const dimHours = { shepherd:0, admin:0, grow:0 };
+  periodEvents.forEach(e => { if (dimHours.hasOwnProperty(e.ministryCategory)) dimHours[e.ministryCategory] += (e.hours||0); });
   const totalHours = dimHours.shepherd + dimHours.admin + dimHours.grow;
-
-  // 健康度判斷
-  let healthMsg = '', healthClass = '';
-  if (totalHours === 0) {
-    healthMsg = '📭 本週期暫無工作記錄。請開始填寫日程以獲得健康度分析。';
-    healthClass = 'warn';
-  } else {
-    const adminPct = dimHours.admin / totalHours;
-    const growPct = dimHours.grow / totalHours;
-    if (adminPct > 0.5) {
-      healthMsg = '⚠️ 非牧養行政工作佔比超過 50%，請留意是否過度消耗精力，建議適度調整並增加進修時間。';
-      healthClass = 'warn';
-    } else if (growPct === 0 && totalHours > 10) {
-      healthMsg = '💡 本週期暫無進修記錄。持續學習是服侍長遠的根基，建議安排退修或進修時間。';
-      healthClass = 'warn';
-    } else if (dimHours.shepherd >= dimHours.admin && growPct > 0.05) {
-      healthMsg = '✅ 事工焦點分配均衡！牧養為主、行政為輔、持續進修，保持健康節奏。';
-      healthClass = 'good';
-    } else {
-      healthMsg = '💡 事工分配大致合理，建議持續關注進修與充實的比例。';
-      healthClass = 'good';
-    }
+  let healthMsg='', healthClass='';
+  if (totalHours===0) { healthMsg='📭 本週期暫無工作記錄。請開始填寫日程以獲得健康度分析。'; healthClass='warn'; }
+  else {
+    const adminPct=dimHours.admin/totalHours, growPct=dimHours.grow/totalHours;
+    if (adminPct>0.5) { healthMsg='⚠️ 非牧養行政工作佔比超過 50%，請留意是否過度消耗精力，建議適度調整並增加進修時間。'; healthClass='warn'; }
+    else if (growPct===0 && totalHours>10) { healthMsg='💡 本週期暫無進修記錄。持續學習是服侍長遠的根基，建議安排退修或進修時間。'; healthClass='warn'; }
+    else if (dimHours.shepherd>=dimHours.admin && growPct>0.05) { healthMsg='✅ 事工焦點分配均衡！牧養為主、行政為輔、持續進修，保持健康節奏。'; healthClass='good'; }
+    else { healthMsg='💡 事工分配大致合理，建議持續關注進修與充實的比例。'; healthClass='good'; }
   }
-
-  const periodLabel = APP.biPeriod === 'month' ? '本月' : APP.biPeriod === 'quarter' ? '本季' : '本年';
-
+  const periodLabel = APP.biPeriod==='month'?'本月':APP.biPeriod==='quarter'?'本季':'本年';
   document.getElementById('staffTabContent').innerHTML = `
-    <div class="health-alert ${healthClass}">
-      <span style="font-size:1.25rem">${healthClass==='good'?'✅':'⚠️'}</span>
-      <span>${healthMsg}</span>
-    </div>
+    <div class="health-alert ${healthClass}"><span style="font-size:1.25rem">${healthClass==='good'?'✅':'⚠️'}</span><span>${healthMsg}</span></div>
     <div class="filter-row mb-4">
       <span class="text-sm text-muted">分析週期：</span>
       <button class="btn btn-sm ${APP.biPeriod==='month'?'btn-primary':'btn-outline'}" onclick="APP.biPeriod='month';renderStaffAnalytics()">本月</button>
@@ -878,95 +933,36 @@ async function renderStaffAnalytics() {
       <button class="btn btn-sm ${APP.biPeriod==='year'?'btn-primary':'btn-outline'}" onclick="APP.biPeriod='year';renderStaffAnalytics()">本年</button>
     </div>
     <div class="grid grid-cols-2 gap-4 mb-6">
-      <div class="card">
-        <h3 class="section-title">📊 ${periodLabel}三維度工時分佈</h3>
-        <div class="mini-stats mb-4">
-          <div class="mini-stat"><div class="val" style="color:var(--c-shepherd)">${dimHours.shepherd}h</div><div class="lbl">🐑 牧養工作</div></div>
-          <div class="mini-stat"><div class="val" style="color:var(--c-admin)">${dimHours.admin}h</div><div class="lbl">📋 非牧養工作</div></div>
-          <div class="mini-stat"><div class="val" style="color:var(--c-grow)">${dimHours.grow}h</div><div class="lbl">📚 進修與充實</div></div>
-        </div>
-        <div class="chart-wrap">
-          ${totalHours > 0 ? renderPieChartSVG(dimHours, totalHours) : '<p class="text-muted text-sm">暫無數據</p>'}
-        </div>
+      <div class="card"><h3 class="section-title">📊 ${periodLabel}三維度工時分佈</h3>
+        <div class="mini-stats mb-4"><div class="mini-stat"><div class="val" style="color:var(--c-shepherd)">${dimHours.shepherd}h</div><div class="lbl">🐑 牧養工作</div></div><div class="mini-stat"><div class="val" style="color:var(--c-admin)">${dimHours.admin}h</div><div class="lbl">📋 非牧養工作</div></div><div class="mini-stat"><div class="val" style="color:var(--c-grow)">${dimHours.grow}h</div><div class="lbl">📚 進修與充實</div></div></div>
+        <div class="chart-wrap">${totalHours>0?renderPieChartSVG(dimHours,totalHours):'<p class="text-muted text-sm">暫無數據</p>'}</div>
       </div>
-      <div class="card">
-        <h3 class="section-title">📅 ${periodLabel}活動參與工時</h3>
-        ${renderActivityEventBreakdown(periodEvents, actMap)}
-      </div>
+      <div class="card"><h3 class="section-title">📅 ${periodLabel}活動參與工時</h3>${renderActivityEventBreakdown(periodEvents,actMap)}</div>
     </div>
-    <div class="card">
-      <h3 class="section-title">📋 ${periodLabel}事件明細</h3>
-      ${renderEventTable(periodEvents, actMap)}
-    </div>
+    <div class="card"><h3 class="section-title">📋 ${periodLabel}事件明細</h3>${renderEventTable(periodEvents,actMap)}</div>
   `;
 }
 
 function renderPieChartSVG(dimHours, totalHours) {
-  const colors = { shepherd: 'var(--c-shepherd)', admin: 'var(--c-admin)', grow: 'var(--c-grow)' };
-  const labels = { shepherd: '牧養工作', admin: '非牧養工作', grow: '進修與充實' };
-  const slices = [];
-  let cumulative = 0;
-  const cx = 90, cy = 90, r = 70;
-
-  Object.entries(dimHours).forEach(([key, val]) => {
-    if (val === 0) return;
-    const pct = val / totalHours;
-    const startAngle = cumulative * 2 * Math.PI;
-    const endAngle = (cumulative + pct) * 2 * Math.PI;
-    cumulative += pct;
-    const x1 = cx + r * Math.sin(startAngle);
-    const y1 = cy - r * Math.cos(startAngle);
-    const x2 = cx + r * Math.sin(endAngle);
-    const y2 = cy - r * Math.cos(endAngle);
-    const largeArc = pct > 0.5 ? 1 : 0;
-    slices.push(`<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc} 1 ${x2},${y2} Z" fill="${colors[key]}" stroke="#fff" stroke-width="2"/>`);
-  });
-
-  let legendHTML = '';
-  Object.entries(dimHours).forEach(([key, val]) => {
-    const pct = totalHours > 0 ? Math.round(val / totalHours * 100) : 0;
-    legendHTML += `<div class="flex items-center gap-1"><span class="legend-dot" style="background:${colors[key]}"></span>${labels[key]}: ${val}h (${pct}%)</div>`;
-  });
-
-  return `
-    <svg viewBox="0 0 180 180" width="200" height="200">
-      ${slices.join('')}
-      <text x="90" y="85" text-anchor="middle" font-size="18" font-weight="700" fill="var(--c-text)">${totalHours}h</text>
-      <text x="90" y="102" text-anchor="middle" font-size="10" fill="var(--c-muted)">總工時</text>
-    </svg>
-    <div class="chart-legend">${legendHTML}</div>
-  `;
+  const colors = { shepherd:'var(--c-shepherd)', admin:'var(--c-admin)', grow:'var(--c-grow)' };
+  const labels = { shepherd:'牧養工作', admin:'非牧養工作', grow:'進修與充實' };
+  const slices=[]; let cumulative=0; const cx=90,cy=90,r=70;
+  Object.entries(dimHours).forEach(([key,val])=>{if(val===0)return;const pct=val/totalHours;const sa=cumulative*2*Math.PI;const ea=(cumulative+pct)*2*Math.PI;cumulative+=pct;const x1=cx+r*Math.sin(sa),y1=cy-r*Math.cos(sa),x2=cx+r*Math.sin(ea),y2=cy-r*Math.cos(ea);const la=pct>0.5?1:0;slices.push(`<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${la} 1 ${x2},${y2} Z" fill="${colors[key]}" stroke="#fff" stroke-width="2"/>`);});
+  let legendHTML='';Object.entries(dimHours).forEach(([key,val])=>{const pct=totalHours>0?Math.round(val/totalHours*100):0;legendHTML+=`<div class="flex items-center gap-1"><span class="legend-dot" style="background:${colors[key]}"></span>${labels[key]}: ${val}h (${pct}%)</div>`;});
+  return `<svg viewBox="0 0 180 180" width="200" height="200">${slices.join('')}<text x="90" y="85" text-anchor="middle" font-size="18" font-weight="700" fill="var(--c-text)">${totalHours}h</text><text x="90" y="102" text-anchor="middle" font-size="10" fill="var(--c-muted)">總工時</text></svg><div class="chart-legend">${legendHTML}</div>`;
 }
 
 function renderActivityEventBreakdown(events, actMap) {
-  // 按活動分組工時
-  const activityHours = {};
-  events.forEach(e => {
-    const key = e.activityId ? `act_${e.activityId}` : 'none';
-    if (!activityHours[key]) activityHours[key] = { name: e.activityId ? (actMap[e.activityId] || '未知活動') : '未關聯活動', hours: 0 };
-    activityHours[key].hours += (e.hours || 0);
-  });
-  const entries = Object.values(activityHours).sort((a,b) => b.hours - a.hours);
-  if (entries.length === 0) return '<p class="text-muted text-sm">暫無活動關聯數據</p>';
-
-  const maxH = Math.max(...entries.map(e => e.hours), 1);
-  return entries.map(e => `
-    <div class="bar-row">
-      <div class="bar-label">${escapeHtml(e.name)}</div>
-      <div class="bar-track">
-        <div class="bar-fill" style="width:${(e.hours/maxH*100)}%;background:var(--c-primary)">${e.hours}h</div>
-      </div>
-    </div>
-  `).join('');
+  const ah={};events.forEach(e=>{const key=e.activityId?'act_'+e.activityId:'none';if(!ah[key])ah[key]={name:e.activityId?(actMap[e.activityId]||'未知活動'):'未關聯活動',hours:0};ah[key].hours+=(e.hours||0);});
+  const entries=Object.values(ah).sort((a,b)=>b.hours-a.hours);
+  if(entries.length===0)return'<p class="text-muted text-sm">暫無活動關聯數據</p>';
+  const maxH=Math.max(...entries.map(e=>e.hours),1);
+  return entries.map(e=>`<div class="bar-row"><div class="bar-label">${escapeHtml(e.name)}</div><div class="bar-track"><div class="bar-fill" style="width:${(e.hours/maxH*100)}%;background:var(--c-primary)">${e.hours}h</div></div></div>`).join('');
 }
 
 function renderEventTable(events, actMap) {
-  if (events.length === 0) return '<p class="text-muted text-sm">暫無事件</p>';
-  return `<table class="table"><thead><tr><th>日期</th><th>標題</th><th>分類</th><th>工時</th><th>關聯活動</th></tr></thead>
-    <tbody>${events.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30).map(e => {
-      const cat = MINISTRY_CATEGORIES[e.ministryCategory];
-      return `<tr><td>${e.date}</td><td>${escapeHtml(e.title)}</td><td><span class="badge badge-${e.ministryCategory==='shepherd'?'shepherd':e.ministryCategory==='admin'?'admin-task':'grow'}">${cat?cat.label.slice(0,8):''}</span></td><td>${e.hours||0}h</td><td class="text-sm text-muted">${e.activityId&&actMap[e.activityId]?actMap[e.activityId]:'—'}</td></tr>`;
-    }).join('')}</tbody></table>`;
+  if(events.length===0)return'<p class="text-muted text-sm">暫無事件</p>';
+  return `<table class="table"><thead><tr><th>日期</th><th>標題</th><th>分類</th><th>工時</th><th>關聯活動</th></tr></thead><tbody>${events.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30).map(e=>{const cat=MINISTRY_CATEGORIES[e.ministryCategory];return`<tr><td>${e.date}</td><td>${escapeHtml(e.title)}</td><td><span class="badge badge-${e.ministryCategory==='shepherd'?'shepherd':e.ministryCategory==='admin'?'admin-task':'grow'}">${cat?cat.label.slice(0,8):''}</span></td><td>${e.hours||0}h</td><td class="text-sm text-muted">${e.activityId&&actMap[e.activityId]?actMap[e.activityId]:'—'}</td></tr>`;}).join('')}</tbody></table>`;
 }
 
 // ═══════════════════════════════════════════
@@ -977,6 +973,7 @@ function renderAdminView() {
   return `
     <div class="tab-nav" id="adminTabs">
       <button class="tab-btn active" data-tab="approvals">✅ 審批中心</button>
+      <button class="tab-btn" data-tab="annualPlanAll">🗓️ 全局年度計劃</button>
       <button class="tab-btn" data-tab="activities">📊 活動與預算</button>
       <button class="tab-btn" data-tab="personnel">👥 人員管理</button>
       <button class="tab-btn" data-tab="analytics">📈 團隊資源成效</button>
@@ -989,292 +986,220 @@ function loadAdminData() {
   const tab = APP.currentTab || 'approvals';
   switch (tab) {
     case 'approvals': renderApprovals(); break;
+    case 'annualPlanAll': renderAnnualPlanAll(); break;
     case 'activities': renderActivities(); break;
     case 'personnel': renderPersonnel(); break;
     case 'analytics': renderAdminAnalytics(); break;
   }
 }
 
-// ─── 審批中心 (v2: 報銷表格加入活動欄位) ───
+// ─── 審批中心 ───
 async function renderApprovals() {
-  const [leaveReqs, expenseReqs, users, activities] = await Promise.all([
-    dbGetAll('leaveRequests'), dbGetAll('expenseRequests'), dbGetAll('users'), dbGetAll('activities')
-  ]);
-  const userMap = {}; users.forEach(u => { userMap[u.id] = u.name; });
-  const actMap = {}; activities.forEach(a => { actMap[a.id] = a.name; });
-
-  const pendingLeaves = leaveReqs.filter(l => l.status === 'pending');
-  const pendingExpenses = expenseReqs.filter(e => e.status === 'pending');
-  const typeLabels = { annual:'年假', comp:'補假', sick:'病假', other:'其他' };
-  const catLabels = { travel:'差旅交通', stationery:'文具用品', meal:'聚餐', custom:'自定義' };
+  const [leaveReqs, expenseReqs, users, activities] = await Promise.all([dbGetAll('leaveRequests'), dbGetAll('expenseRequests'), dbGetAll('users'), dbGetAll('activities')]);
+  const userMap={};users.forEach(u=>{userMap[u.id]=u.name;});
+  const actMap={};activities.forEach(a=>{actMap[a.id]=a.name;});
+  const pendingLeaves=leaveReqs.filter(l=>l.status==='pending');
+  const pendingExpenses=expenseReqs.filter(e=>e.status==='pending');
 
   document.getElementById('adminTabContent').innerHTML = `
-    <div class="grid grid-cols-2 gap-4 mb-6">
-      <div class="stat-card"><div class="stat-value">${pendingLeaves.length}</div><div class="stat-label">待審假期</div></div>
-      <div class="stat-card"><div class="stat-value">${pendingExpenses.length}</div><div class="stat-label">待審報銷</div></div>
+    <div class="grid grid-cols-2 gap-4 mb-6"><div class="stat-card"><div class="stat-value">${pendingLeaves.length}</div><div class="stat-label">待審假期</div></div><div class="stat-card"><div class="stat-value">${pendingExpenses.length}</div><div class="stat-label">待審報銷</div></div></div>
+    <div class="card mb-4"><h3 class="section-title">🏖️ 假期審批</h3>
+      ${pendingLeaves.length===0?'<p class="text-muted text-sm">暫無待審假期</p>':`<table class="table"><thead><tr><th>申請人</th><th>類型</th><th>日期</th><th>天數</th><th>原因</th><th>操作</th></tr></thead><tbody>${pendingLeaves.map(l=>{const lt=LEAVE_TYPES[l.type]||{label:l.type,icon:'📋'};return`<tr><td class="font-medium">${userMap[l.userId]||'未知'}</td><td>${lt.icon} ${lt.label}</td><td>${l.startDate} 至 ${l.endDate}</td><td>${daysBetween(l.startDate,l.endDate)}天</td><td>${escapeHtml(l.reason||'')}</td><td><button class="btn btn-success btn-sm mr-2" onclick="approveLeave(${l.id})">✓ 批准</button><button class="btn btn-danger btn-sm" onclick="rejectLeave(${l.id})">✗ 拒絕</button></td></tr>`;}).join('')}</tbody></table>`}
     </div>
-    <div class="card mb-4">
-      <h3 class="section-title">🏖️ 假期審批</h3>
-      ${pendingLeaves.length === 0 ? '<p class="text-muted text-sm">暫無待審假期</p>' : `
-      <table class="table"><thead><tr><th>申請人</th><th>類型</th><th>日期</th><th>天數</th><th>原因</th><th>操作</th></tr></thead>
-        <tbody>${pendingLeaves.map(l => `<tr><td class="font-medium">${userMap[l.userId]||'未知'}</td><td>${typeLabels[l.type]}</td><td>${l.startDate} 至 ${l.endDate}</td><td>${daysBetween(l.startDate,l.endDate)}天</td><td>${escapeHtml(l.reason||'')}</td><td><button class="btn btn-success btn-sm mr-2" onclick="approveLeave(${l.id})">✓ 批准</button><button class="btn btn-danger btn-sm" onclick="rejectLeave(${l.id})">✗ 拒絕</button></td></tr>`).join('')}</tbody></table>`}
-    </div>
-    <div class="card">
-      <h3 class="section-title">💰 報銷審批</h3>
-      ${pendingExpenses.length === 0 ? '<p class="text-muted text-sm">暫無待審報銷</p>' : `
-      <table class="table"><thead><tr><th>申請人</th><th>類別</th><th>金額</th><th>關聯活動</th><th>描述</th><th>操作</th></tr></thead>
-        <tbody>${pendingExpenses.map(e => `<tr><td class="font-medium">${userMap[e.userId]||'未知'}</td><td>${catLabels[e.category]||e.category}</td><td class="font-semibold">$${e.amount.toFixed(2)}</td><td class="text-sm text-muted">${e.activityId&&actMap[e.activityId]?actMap[e.activityId]:'—'}</td><td>${escapeHtml(e.description||'')}</td><td><button class="btn btn-success btn-sm mr-2" onclick="approveExpense(${e.id})">✓ 批准</button><button class="btn btn-danger btn-sm" onclick="rejectExpense(${e.id})">✗ 拒絕</button></td></tr>`).join('')}</tbody></table>`}
+    <div class="card"><h3 class="section-title">💰 報銷審批</h3>
+      ${pendingExpenses.length===0?'<p class="text-muted text-sm">暫無待審報銷</p>':`<table class="table"><thead><tr><th>申請人</th><th>類別</th><th>金額</th><th>關聯活動</th><th>描述</th><th>操作</th></tr></thead><tbody>${pendingExpenses.map(e=>{const cl={travel:'差旅交通',stationery:'文具用品',meal:'聚餐',custom:'自定義'};return`<tr><td class="font-medium">${userMap[e.userId]||'未知'}</td><td>${cl[e.category]||e.category}</td><td class="font-semibold">$${e.amount.toFixed(2)}</td><td class="text-sm text-muted">${e.activityId&&actMap[e.activityId]?actMap[e.activityId]:'—'}</td><td>${escapeHtml(e.description||'')}</td><td><button class="btn btn-success btn-sm mr-2" onclick="approveExpense(${e.id})">✓ 批准</button><button class="btn btn-danger btn-sm" onclick="rejectExpense(${e.id})">✗ 拒絕</button></td></tr>`;}).join('')}</tbody></table>`}
     </div>
   `;
 }
 
-async function approveLeave(id) {
-  await dbPut('leaveRequests', { ...(await dbGetAll('leaveRequests')).find(l => l.id === id), status: 'approved' });
-  loadAdminData(); showToast('假期已批准 ✓', 'success');
-}
-async function rejectLeave(id) {
-  await dbPut('leaveRequests', { ...(await dbGetAll('leaveRequests')).find(l => l.id === id), status: 'rejected' });
-  loadAdminData(); showToast('假期已拒絕', 'success');
-}
-async function approveExpense(id) {
-  await dbPut('expenseRequests', { ...(await dbGetAll('expenseRequests')).find(e => e.id === id), status: 'approved' });
-  loadAdminData(); showToast('報銷已批准 ✓', 'success');
-}
-async function rejectExpense(id) {
-  await dbPut('expenseRequests', { ...(await dbGetAll('expenseRequests')).find(e => e.id === id), status: 'rejected' });
-  loadAdminData(); showToast('報銷已拒絕', 'success');
+async function approveLeave(id){await dbPut('leaveRequests',{...(await dbGetAll('leaveRequests')).find(l=>l.id===id),status:'approved'});loadAdminData();showToast('假期已批准 ✓','success');}
+async function rejectLeave(id){await dbPut('leaveRequests',{...(await dbGetAll('leaveRequests')).find(l=>l.id===id),status:'rejected'});loadAdminData();showToast('假期已拒絕','success');}
+async function approveExpense(id){await dbPut('expenseRequests',{...(await dbGetAll('expenseRequests')).find(e=>e.id===id),status:'approved'});loadAdminData();showToast('報銷已批准 ✓','success');}
+async function rejectExpense(id){await dbPut('expenseRequests',{...(await dbGetAll('expenseRequests')).find(e=>e.id===id),status:'rejected'});loadAdminData();showToast('報銷已拒絕','success');}
+
+// ═══════════════════════════════════════════
+//  🆕 全局年度計劃 — 管理員端
+// ═══════════════════════════════════════════
+async function renderAnnualPlanAll() {
+  const year = APP.planViewYear;
+  const [allPlans, users, activities] = await Promise.all([dbGetAll('annualPlans'), dbGetAll('users'), dbGetAll('activities')]);
+  const actMap = {}; activities.forEach(a => { actMap[a.id] = a.name; });
+  const userMap = {}; users.forEach(u => { userMap[u.id] = u; });
+  const staffUsers = users.filter(u => u.role === 'staff');
+  const yearPlans = allPlans.filter(p => p.year === year);
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+  // 按月份 + 同工建立網格
+  const matrix = {}; // month -> userId -> plans[]
+  for (let m=1; m<=12; m++) { matrix[m] = {}; staffUsers.forEach(u => { matrix[m][u.id] = []; }); }
+  yearPlans.forEach(p => {
+    if (matrix[p.month] && matrix[p.month][p.userId]) matrix[p.month][p.userId].push(p);
+  });
+
+  document.getElementById('adminTabContent').innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <button class="btn btn-outline btn-sm" onclick="APP.planViewYear--;renderAnnualPlanAll()">◀</button>
+        <h3 class="text-xl font-bold">${year} 全局年度計劃總覽</h3>
+        <button class="btn btn-outline btn-sm" onclick="APP.planViewYear++;renderAnnualPlanAll()">▶</button>
+      </div>
+      <span class="text-sm text-muted">共 ${yearPlans.length} 項計劃 · ${staffUsers.length} 位同工</span>
+    </div>
+    <div class="card" style="overflow-x:auto">
+      <table class="table">
+        <thead><tr><th style="min-width:80px">同工</th>${monthNames.map(m=>`<th class="text-center">${m}</th>`).join('')}</tr></thead>
+        <tbody>${staffUsers.map(u => `<tr>
+          <td class="font-semibold">${escapeHtml(u.name)}</td>
+          ${monthNames.map((_,i) => {
+            const plans = matrix[i+1][u.id] || [];
+            if (plans.length === 0) return '<td class="text-center text-muted">—</td>';
+            return `<td class="text-center">${plans.map(p => {
+              const cat = MINISTRY_CATEGORIES[p.ministryCategory];
+              return `<div class="text-xs mb-1" style="color:${cat?cat.color:'var(--c-text)'}" title="${escapeHtml(p.name)} (${p.energyPct}%)">${escapeHtml(p.name.slice(0,8))}${p.name.length>8?'…':''}</div>`;
+            }).join('')}</td>`;
+          }).join('')}
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+    <div class="card mt-4">
+      <h3 class="section-title">📋 全部計劃明細</h3>
+      ${renderAnnualPlanTableAll(yearPlans, userMap, actMap)}
+    </div>
+  `;
 }
 
-// ─── 活動與預算 (保持) ───
+function renderAnnualPlanTableAll(plans, userMap, actMap) {
+  if (plans.length === 0) return '<p class="text-muted text-sm">暫無年度計劃</p>';
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  return `<table class="table"><thead><tr><th>同工</th><th>月份</th><th>計劃名稱</th><th>事工分類</th><th>關聯活動</th><th>精力%</th></tr></thead>
+    <tbody>${plans.sort((a,b)=>a.month-b.month).map(p=>{const cat=MINISTRY_CATEGORIES[p.ministryCategory];const catBadge=p.ministryCategory==='shepherd'?'badge-shepherd':p.ministryCategory==='admin'?'badge-admin-task':'badge-grow';return`<tr><td class="font-medium">${userMap[p.userId]?userMap[p.userId].name:'未知'}</td><td>${monthNames[p.month-1]}</td><td>${escapeHtml(p.name)}</td><td><span class="badge ${catBadge}">${cat?cat.label.slice(0,8):''}</span></td><td class="text-sm text-muted">${p.activityId&&actMap[p.activityId]?actMap[p.activityId]:'—'}</td><td>${p.energyPct}%</td></tr>`;}).join('')}</tbody></table>`;
+}
+
+// ─── 活動與預算 ───
 async function renderActivities() {
   const activities = await dbGetAll('activities');
-  const totalBudget = activities.reduce((sum, a) => sum + (a.budget || 0), 0);
+  const totalBudget = activities.reduce((sum,a)=>sum+(a.budget||0),0);
   document.getElementById('adminTabContent').innerHTML = `
-    <div class="grid grid-cols-2 gap-4 mb-6">
-      <div class="stat-card"><div class="stat-value">${activities.length}</div><div class="stat-label">年度活動總數</div></div>
-      <div class="stat-card"><div class="stat-value">$${totalBudget.toLocaleString()}</div><div class="stat-label">總預算 (HKD)</div></div>
-    </div>
-    <div class="card mb-4">
-      <div class="flex items-center justify-between mb-4"><h3 class="section-title" style="margin:0">📊 活動列表</h3><button class="btn btn-primary btn-sm" onclick="openActivityModal()">＋ 新增活動</button></div>
-      <div id="activityList">${renderActivityList(activities)}</div>
-    </div>
+    <div class="grid grid-cols-2 gap-4 mb-6"><div class="stat-card"><div class="stat-value">${activities.length}</div><div class="stat-label">年度活動總數</div></div><div class="stat-card"><div class="stat-value">$${totalBudget.toLocaleString()}</div><div class="stat-label">總預算 (HKD)</div></div></div>
+    <div class="card mb-4"><div class="flex items-center justify-between mb-4"><h3 class="section-title" style="margin:0">📊 活動列表</h3><button class="btn btn-primary btn-sm" onclick="openActivityModal()">＋ 新增活動</button></div><div id="activityList">${renderActivityList(activities)}</div></div>
   `;
 }
 
 function renderActivityList(activities) {
-  if (activities.length === 0) return '<p class="text-muted text-sm">暫無活動</p>';
-  const statusLabels = { planned:['籌劃中','info'], ongoing:['進行中','success'], completed:['已完成','muted'] };
-  return `<table class="table"><thead><tr><th>活動名稱</th><th>日期</th><th>預算</th><th>狀態</th><th>操作</th></tr></thead>
-    <tbody>${activities.map(a => `<tr><td class="font-medium">${escapeHtml(a.name)}</td><td>${a.date||''}</td><td class="font-semibold">$${(a.budget||0).toLocaleString()}</td><td><span class="badge badge-${statusLabels[a.status||'planned'][1]}">${statusLabels[a.status||'planned'][0]}</span></td><td><button class="btn btn-outline btn-sm mr-2" onclick="editActivity(${a.id})">編輯</button><button class="btn btn-danger btn-sm" onclick="deleteActivity(${a.id})">刪除</button></td></tr>`).join('')}</tbody></table>`;
+  if (activities.length===0) return '<p class="text-muted text-sm">暫無活動</p>';
+  const sl={planned:['籌劃中','info'],ongoing:['進行中','success'],completed:['已完成','muted']};
+  return `<table class="table"><thead><tr><th>活動名稱</th><th>日期</th><th>預算</th><th>狀態</th><th>操作</th></tr></thead><tbody>${activities.map(a=>`<tr><td class="font-medium">${escapeHtml(a.name)}</td><td>${a.date||''}</td><td class="font-semibold">$${(a.budget||0).toLocaleString()}</td><td><span class="badge badge-${sl[a.status||'planned'][1]}">${sl[a.status||'planned'][0]}</span></td><td><button class="btn btn-outline btn-sm mr-2" onclick="editActivity(${a.id})">編輯</button><button class="btn btn-danger btn-sm" onclick="deleteActivity(${a.id})">刪除</button></td></tr>`).join('')}</tbody></table>`;
 }
 
-function openActivityModal() {
-  showModal(`
-    <h3 class="text-lg font-bold mb-3">新增活動</h3>
-    <div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" placeholder="例如：夏季佈道會"></div>
-    <div class="grid grid-cols-2 gap-3 mb-3"><div><label class="label">日期</label><input class="input" type="date" id="actDate"></div><div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="0"></div></div>
-    <div class="mb-4"><label class="label">狀態</label><select class="select" id="actStatus"><option value="planned">籌劃中</option><option value="ongoing">進行中</option><option value="completed">已完成</option></select></div>
-    <div class="flex gap-2"><button class="btn btn-primary btn-block" onclick="saveActivity()">儲存</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>
-  `);
-}
+function openActivityModal(){showModal(`<h3 class="text-lg font-bold mb-3">新增活動</h3><div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" placeholder="例如：夏季佈道會"></div><div class="grid grid-cols-2 gap-3 mb-3"><div><label class="label">日期</label><input class="input" type="date" id="actDate"></div><div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="0"></div></div><div class="mb-4"><label class="label">狀態</label><select class="select" id="actStatus"><option value="planned">籌劃中</option><option value="ongoing">進行中</option><option value="completed">已完成</option></select></div><div class="flex gap-2"><button class="btn btn-primary btn-block" onclick="saveActivity()">儲存</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>`);}
+async function saveActivity(){const name=document.getElementById('actName').value.trim();const date=document.getElementById('actDate').value;const budget=parseInt(document.getElementById('actBudget').value)||0;const status=document.getElementById('actStatus').value;if(!name){showToast('請填寫活動名稱','error');return;}await dbPut('activities',{name,date,budget,status});closeModal();loadAdminData();showToast('活動已新增 ✓','success');}
+async function editActivity(id){const acts=await dbGetAll('activities');const a=acts.find(x=>x.id===id);if(!a)return;showModal(`<h3 class="text-lg font-bold mb-3">編輯活動</h3><div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" value="${escapeHtml(a.name)}"></div><div class="grid grid-cols-2 gap-3 mb-3"><div><label class="label">日期</label><input class="input" type="date" id="actDate" value="${a.date||''}"></div><div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="${a.budget||0}"></div></div><div class="mb-4"><label class="label">狀態</label><select class="select" id="actStatus"><option value="planned" ${a.status==='planned'?'selected':''}>籌劃中</option><option value="ongoing" ${a.status==='ongoing'?'selected':''}>進行中</option><option value="completed" ${a.status==='completed'?'selected':''}>已完成</option></select></div><div class="flex gap-2"><button class="btn btn-primary" style="flex:1" onclick="updateActivity(${id})">更新</button><button class="btn btn-danger" onclick="deleteActivity(${id});closeModal()">刪除</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>`);}
+async function updateActivity(id){const name=document.getElementById('actName').value.trim();const date=document.getElementById('actDate').value;const budget=parseInt(document.getElementById('actBudget').value)||0;const status=document.getElementById('actStatus').value;if(!name){showToast('請填寫活動名稱','error');return;}await dbPut('activities',{id,name,date,budget,status});closeModal();loadAdminData();showToast('活動已更新 ✓','success');}
+async function deleteActivity(id){await dbDelete('activities',id);loadAdminData();showToast('活動已刪除','success');}
 
-async function saveActivity() {
-  const name = document.getElementById('actName').value.trim();
-  const date = document.getElementById('actDate').value;
-  const budget = parseInt(document.getElementById('actBudget').value) || 0;
-  const status = document.getElementById('actStatus').value;
-  if (!name) { showToast('請填寫活動名稱', 'error'); return; }
-  await dbPut('activities', { name, date, budget, status });
-  closeModal(); loadAdminData(); showToast('活動已新增 ✓', 'success');
-}
-
-async function editActivity(id) {
-  const activities = await dbGetAll('activities');
-  const a = activities.find(x => x.id === id);
-  if (!a) return;
-  showModal(`
-    <h3 class="text-lg font-bold mb-3">編輯活動</h3>
-    <div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" value="${escapeHtml(a.name)}"></div>
-    <div class="grid grid-cols-2 gap-3 mb-3"><div><label class="label">日期</label><input class="input" type="date" id="actDate" value="${a.date||''}"></div><div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="${a.budget||0}"></div></div>
-    <div class="mb-4"><label class="label">狀態</label><select class="select" id="actStatus"><option value="planned" ${a.status==='planned'?'selected':''}>籌劃中</option><option value="ongoing" ${a.status==='ongoing'?'selected':''}>進行中</option><option value="completed" ${a.status==='completed'?'selected':''}>已完成</option></select></div>
-    <div class="flex gap-2"><button class="btn btn-primary" style="flex:1" onclick="updateActivity(${id})">更新</button><button class="btn btn-danger" onclick="deleteActivity(${id});closeModal()">刪除</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>
-  `);
-}
-
-async function updateActivity(id) {
-  const name = document.getElementById('actName').value.trim();
-  const date = document.getElementById('actDate').value;
-  const budget = parseInt(document.getElementById('actBudget').value) || 0;
-  const status = document.getElementById('actStatus').value;
-  if (!name) { showToast('請填寫活動名稱', 'error'); return; }
-  await dbPut('activities', { id, name, date, budget, status });
-  closeModal(); loadAdminData(); showToast('活動已更新 ✓', 'success');
-}
-
-async function deleteActivity(id) {
-  await dbDelete('activities', id);
-  loadAdminData(); showToast('活動已刪除', 'success');
-}
-
-// ─── 人員管理 (保持) ───
+// ═══════════════════════════════════════════
+//  🆕 人員管理 v3 — 8 種假別額度設定
+// ═══════════════════════════════════════════
 async function renderPersonnel() {
   const users = await dbGetAll('users');
+  const staffUsers = users.filter(u => u.role === 'staff');
   document.getElementById('adminTabContent').innerHTML = `
-    <div class="card"><h3 class="section-title">👥 同工名單</h3>
-      <table class="table"><thead><tr><th>姓名</th><th>角色</th><th>年假額度</th><th>補假額度</th><th>操作</th></tr></thead>
-        <tbody>${users.filter(u => u.role === 'staff').map(u => `<tr><td class="font-medium">${escapeHtml(u.name)}</td><td><span class="badge badge-info">同工</span></td><td>${u.annualLeave||0} 天</td><td>${u.compLeave||0} 天</td><td><button class="btn btn-outline btn-sm" onclick="editUserLeave('${u.id}')">調整額度</button></td></tr>`).join('')}</tbody></table>
+    <div class="card">
+      <h3 class="section-title">👥 同工名單與假別額度</h3>
+      <table class="table">
+        <thead><tr><th>姓名</th><th>角色</th>${Object.entries(LEAVE_TYPES).filter(([k,v])=>v.trackRemaining).map(([k,v])=>`<th class="text-center">${v.icon}<br>${v.label}</th>`).join('')}<th>操作</th></tr></thead>
+        <tbody>${staffUsers.map(u => {
+          const q = u.leaveQuota || {};
+          return `<tr>
+            <td class="font-medium">${escapeHtml(u.name)}</td>
+            <td><span class="badge badge-info">同工</span></td>
+            ${Object.entries(LEAVE_TYPES).filter(([k,v])=>v.trackRemaining).map(([k,v])=>`<td class="text-center">${q[k]!==undefined?q[k]:v.defaultQuota}</td>`).join('')}
+            <td><button class="btn btn-outline btn-sm" onclick="editUserLeaveAll('${u.id}')">調整假別</button></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
     </div>
   `;
 }
 
-async function editUserLeave(userId) {
+async function editUserLeaveAll(userId) {
   const users = await dbGetAll('users');
   const u = users.find(x => x.id === userId);
   if (!u) return;
+  const q = u.leaveQuota || {};
+  const trackableTypes = Object.entries(LEAVE_TYPES).filter(([k,v]) => v.trackRemaining);
+  const fieldsHTML = trackableTypes.map(([key, val]) => `
+    <div><label class="label">${val.icon} ${val.label}（預設 ${val.defaultQuota} 天）</label><input class="input" type="number" id="quota_${key}" min="0" max="365" value="${q[key]!==undefined?q[key]:val.defaultQuota}"></div>
+  `).join('');
+
   showModal(`
-    <h3 class="text-lg font-bold mb-3">調整假期額度 — ${escapeHtml(u.name)}</h3>
-    <div class="grid grid-cols-2 gap-3 mb-4"><div><label class="label">年假天數</label><input class="input" type="number" id="annualDays" min="0" max="30" value="${u.annualLeave||0}"></div><div><label class="label">補假天數</label><input class="input" type="number" id="compDays" min="0" max="30" value="${u.compLeave||0}"></div></div>
-    <div class="flex gap-2"><button class="btn btn-primary btn-block" onclick="saveUserLeave('${userId}')">儲存</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>
+    <h3 class="text-lg font-bold mb-3">調整假別額度 — ${escapeHtml(u.name)}</h3>
+    <div class="grid grid-cols-2 gap-3 mb-4">${fieldsHTML}</div>
+    <div class="flex gap-2"><button class="btn btn-primary btn-block" onclick="saveUserLeaveAll('${userId}')">儲存</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>
   `);
 }
 
-async function saveUserLeave(userId) {
+async function saveUserLeaveAll(userId) {
   const users = await dbGetAll('users');
   const u = users.find(x => x.id === userId);
   if (!u) return;
-  u.annualLeave = parseInt(document.getElementById('annualDays').value) || 0;
-  u.compLeave = parseInt(document.getElementById('compDays').value) || 0;
+  if (!u.leaveQuota) u.leaveQuota = {};
+  const trackableTypes = Object.entries(LEAVE_TYPES).filter(([k,v]) => v.trackRemaining);
+  trackableTypes.forEach(([key]) => {
+    const val = parseInt(document.getElementById('quota_' + key).value);
+    if (!isNaN(val)) u.leaveQuota[key] = val;
+  });
   await dbPut('users', u);
-  closeModal(); loadAdminData(); showToast(`${u.name} 的假期額度已更新 ✓`, 'success');
+  closeModal(); renderPersonnel(); showToast(`${u.name} 的假別額度已更新 ✓`, 'success');
 }
 
-// ─── 管理員 BI 分析 (v2 新增) ───
+// ─── 管理員 BI 分析 ───
 async function renderAdminAnalytics() {
-  const [events, users, activities, expenses] = await Promise.all([
-    dbGetAll('events'), dbGetAll('users'), dbGetAll('activities'), dbGetAll('expenseRequests')
-  ]);
-  const userMap = {}; users.forEach(u => { userMap[u.id] = u.name; });
-  const actMap = {}; activities.forEach(a => { actMap[a.id] = a; });
-  const staffUsers = users.filter(u => u.role === 'staff');
-
-  // 圖表一：全體同工三維度工時分佈
-  const totalDim = { shepherd: 0, admin: 0, grow: 0 };
-  const userDim = {}; // per-user breakdown
-  events.forEach(e => {
-    if (!userMap[e.userId]) return;
-    if (totalDim.hasOwnProperty(e.ministryCategory)) {
-      totalDim[e.ministryCategory] += (e.hours || 0);
-    }
-    if (!userDim[e.userId]) userDim[e.userId] = { shepherd: 0, admin: 0, grow: 0 };
-    if (userDim[e.userId].hasOwnProperty(e.ministryCategory)) {
-      userDim[e.userId][e.ministryCategory] += (e.hours || 0);
-    }
-  });
-  const totalAllHours = totalDim.shepherd + totalDim.admin + totalDim.grow;
-
-  // 圖表二：活動預算 vs 實際報銷 vs 工時
-  let selectedActivity = null;
-  if (APP.biActivityId) {
-    selectedActivity = activities.find(a => a.id === APP.biActivityId);
+  const [events, users, activities, expenses] = await Promise.all([dbGetAll('events'), dbGetAll('users'), dbGetAll('activities'), dbGetAll('expenseRequests')]);
+  const userMap={};users.forEach(u=>{userMap[u.id]=u.name;});
+  const actMap={};activities.forEach(a=>{actMap[a.id]=a;});
+  const staffUsers=users.filter(u=>u.role==='staff');
+  const totalDim={shepherd:0,admin:0,grow:0};const userDim={};
+  events.forEach(e=>{if(!userMap[e.userId])return;if(totalDim.hasOwnProperty(e.ministryCategory))totalDim[e.ministryCategory]+=(e.hours||0);if(!userDim[e.userId])userDim[e.userId]={shepherd:0,admin:0,grow:0};if(userDim[e.userId].hasOwnProperty(e.ministryCategory))userDim[e.userId][e.ministryCategory]+=(e.hours||0);});
+  const totalAllHours=totalDim.shepherd+totalDim.admin+totalDim.grow;
+  let selectedActivity=null;
+  if(APP.biActivityId)selectedActivity=activities.find(a=>a.id===APP.biActivityId);
+  if(!selectedActivity&&activities.length>0){selectedActivity=activities[0];APP.biActivityId=selectedActivity.id;}
+  let budgetCompHTML='';
+  if(selectedActivity){
+    const actExpenses=expenses.filter(e=>e.activityId===selectedActivity.id&&e.status==='approved');
+    const actEvents=events.filter(e=>e.activityId===selectedActivity.id);
+    const actualSpent=actExpenses.reduce((s,e)=>s+e.amount,0);
+    const totalActHours=actEvents.reduce((s,e)=>s+(e.hours||0),0);
+    const budget=selectedActivity.budget||0;const maxVal=Math.max(budget,actualSpent,1);const spentPct=budget>0?Math.round(actualSpent/budget*100):0;
+    budgetCompHTML=`<h3 class="section-title">📊 ${escapeHtml(selectedActivity.name)} — 預算與實際對比</h3>
+      <div class="mini-stats mb-4"><div class="mini-stat"><div class="val">$${budget.toLocaleString()}</div><div class="lbl">撥款預算</div></div><div class="mini-stat"><div class="val" style="color:${spentPct>100?'var(--c-danger)':'var(--c-success)'}">$${actualSpent.toLocaleString()}</div><div class="lbl">實際報銷 (${spentPct}%)</div></div><div class="mini-stat"><div class="val">${totalActHours}h</div><div class="lbl">投入總工時</div></div></div>
+      <div class="bar-row"><div class="bar-label">預算</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--c-info)">$${budget.toLocaleString()}</div></div></div>
+      <div class="bar-row"><div class="bar-label">實際報銷</div><div class="bar-track"><div class="bar-fill" style="width:${(actualSpent/maxVal*100)}%;background:${spentPct>100?'var(--c-danger)':'var(--c-success)'}">$${actualSpent.toLocaleString()} ${spentPct>100?'⚠️超支':''}</div></div></div>
+      <div class="bar-row mb-4"><div class="bar-label">投入工時</div><div class="bar-track"><div class="bar-fill" style="width:${totalActHours>0?100:0}%;background:var(--c-shepherd)">${totalActHours}h</div></div></div>
+      <p class="text-xs text-muted mb-4">👥 參與同工：${[...new Set(actEvents.map(e=>userMap[e.userId]||'未知'))].join('、')||'無'}</p>`;
   }
-  if (!selectedActivity && activities.length > 0) {
-    selectedActivity = activities[0];
-    APP.biActivityId = selectedActivity.id;
-  }
-
-  let budgetComparisonHTML = '';
-  if (selectedActivity) {
-    const actExpenses = expenses.filter(e => e.activityId === selectedActivity.id && e.status === 'approved');
-    const actEvents = events.filter(e => e.activityId === selectedActivity.id);
-    const actualSpent = actExpenses.reduce((s, e) => s + e.amount, 0);
-    const totalActHours = actEvents.reduce((s, e) => s + (e.hours || 0), 0);
-    const budget = selectedActivity.budget || 0;
-    const maxVal = Math.max(budget, actualSpent, 1);
-    const spentPct = budget > 0 ? Math.round(actualSpent / budget * 100) : 0;
-
-    budgetComparisonHTML = `
-      <h3 class="section-title">📊 ${escapeHtml(selectedActivity.name)} — 預算與實際對比</h3>
-      <div class="mini-stats mb-4">
-        <div class="mini-stat"><div class="val">$${budget.toLocaleString()}</div><div class="lbl">撥款預算</div></div>
-        <div class="mini-stat"><div class="val" style="color:${spentPct>100?'var(--c-danger)':'var(--c-success)'}">$${actualSpent.toLocaleString()}</div><div class="lbl">實際報銷 (${spentPct}%)</div></div>
-        <div class="mini-stat"><div class="val">${totalActHours}h</div><div class="lbl">投入總工時</div></div>
-      </div>
-      <div class="bar-row">
-        <div class="bar-label">預算</div>
-        <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--c-info)">$${budget.toLocaleString()}</div></div>
-      </div>
-      <div class="bar-row">
-        <div class="bar-label">實際報銷</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${(actualSpent/maxVal*100)}%;background:${spentPct>100?'var(--c-danger)':'var(--c-success)'}">$${actualSpent.toLocaleString()} ${spentPct>100?'⚠️超支':''}</div></div>
-      </div>
-      <div class="bar-row mb-4">
-        <div class="bar-label">投入工時</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${totalActHours>0?100:0}%;background:var(--c-shepherd)">${totalActHours}h</div></div>
-      </div>
-      <p class="text-xs text-muted mb-4">👥 參與同工：${[...new Set(actEvents.map(e=>userMap[e.userId]||'未知'))].join('、') || '無'}</p>
-    `;
-  }
-
-  // 活動選擇器
-  const activityOpts = activities.map(a => `<option value="${a.id}" ${APP.biActivityId===a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
-
+  const activityOpts=activities.map(a=>`<option value="${a.id}" ${APP.biActivityId===a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
   document.getElementById('adminTabContent').innerHTML = `
+    <div class="grid grid-cols-2 gap-4 mb-6"><div class="stat-card"><div class="stat-value">${totalAllHours}h</div><div class="stat-label">全體同工總工時</div></div><div class="stat-card"><div class="stat-value">${staffUsers.length}</div><div class="stat-label">活躍同工人數</div></div></div>
     <div class="grid grid-cols-2 gap-4 mb-6">
-      <div class="stat-card"><div class="stat-value">${totalAllHours}h</div><div class="stat-label">全體同工總工時</div></div>
-      <div class="stat-card"><div class="stat-value">${staffUsers.length}</div><div class="stat-label">活躍同工人數</div></div>
+      <div class="card"><h3 class="section-title">📊 全體事工精力分配</h3><div class="mini-stats mb-4"><div class="mini-stat"><div class="val" style="color:var(--c-shepherd)">${totalDim.shepherd}h</div><div class="lbl">🐑 牧養工作</div></div><div class="mini-stat"><div class="val" style="color:var(--c-admin)">${totalDim.admin}h</div><div class="lbl">📋 非牧養工作</div></div><div class="mini-stat"><div class="val" style="color:var(--c-grow)">${totalDim.grow}h</div><div class="lbl">📚 進修與充實</div></div></div><div class="chart-wrap">${totalAllHours>0?renderPieChartSVG(totalDim,totalAllHours):'<p class="text-muted text-sm">暫無數據</p>'}</div></div>
+      <div class="card"><h3 class="section-title">👥 各同工精力分佈</h3>${renderUserBarChart(userDim,userMap,staffUsers)}</div>
     </div>
-    <div class="grid grid-cols-2 gap-4 mb-6">
-      <div class="card">
-        <h3 class="section-title">📊 全體事工精力分配</h3>
-        <div class="mini-stats mb-4">
-          <div class="mini-stat"><div class="val" style="color:var(--c-shepherd)">${totalDim.shepherd}h</div><div class="lbl">🐑 牧養工作</div></div>
-          <div class="mini-stat"><div class="val" style="color:var(--c-admin)">${totalDim.admin}h</div><div class="lbl">📋 非牧養工作</div></div>
-          <div class="mini-stat"><div class="val" style="color:var(--c-grow)">${totalDim.grow}h</div><div class="lbl">📚 進修與充實</div></div>
-        </div>
-        <div class="chart-wrap">
-          ${totalAllHours > 0 ? renderPieChartSVG(totalDim, totalAllHours) : '<p class="text-muted text-sm">暫無數據</p>'}
-        </div>
-      </div>
-      <div class="card">
-        <h3 class="section-title">👥 各同工精力分佈</h3>
-        ${renderUserBarChart(userDim, userMap, staffUsers)}
-      </div>
-    </div>
-    <div class="card mb-4">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="section-title" style="margin:0">📊 年度活動成效與預算對比</h3>
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-muted">選擇活動：</span>
-          <select class="select" style="width:auto" onchange="APP.biActivityId=parseInt(this.value);renderAdminAnalytics()">${activityOpts}</select>
-        </div>
-      </div>
-      ${budgetComparisonHTML}
-    </div>
+    <div class="card mb-4"><div class="flex items-center justify-between mb-4"><h3 class="section-title" style="margin:0">📊 年度活動成效與預算對比</h3><div class="flex items-center gap-2"><span class="text-sm text-muted">選擇活動：</span><select class="select" style="width:auto" onchange="APP.biActivityId=parseInt(this.value);renderAdminAnalytics()">${activityOpts}</select></div></div>${budgetCompHTML}</div>
   `;
 }
 
 function renderUserBarChart(userDim, userMap, staffUsers) {
-  if (staffUsers.length === 0) return '<p class="text-muted text-sm">暫無同工數據</p>';
-  const colors = { shepherd: 'var(--c-shepherd)', admin: 'var(--c-admin)', grow: 'var(--c-grow)' };
-  let html = '';
-  staffUsers.forEach(u => {
-    const dim = userDim[u.id] || { shepherd: 0, admin: 0, grow: 0 };
-    const total = dim.shepherd + dim.admin + dim.grow;
-    if (total === 0) return;
-    html += `<div class="mb-3">
-      <div class="text-xs font-semibold mb-1">${escapeHtml(u.name)} (${total}h)</div>
-      <div class="flex gap-1" style="height:18px;border-radius:4px;overflow:hidden">
-        ${dim.shepherd>0?`<div style="width:${(dim.shepherd/total*100)}%;background:${colors.shepherd}" title="牧養 ${dim.shepherd}h"></div>`:''}
-        ${dim.admin>0?`<div style="width:${(dim.admin/total*100)}%;background:${colors.admin}" title="非牧養 ${dim.admin}h"></div>`:''}
-        ${dim.grow>0?`<div style="width:${(dim.grow/total*100)}%;background:${colors.grow}" title="進修 ${dim.grow}h"></div>`:''}
-      </div>
-    </div>`;
-  });
-  if (!html) return '<p class="text-muted text-sm">暫無數據</p>';
-  return html + '<div class="flex gap-4 text-xs text-muted mt-2"><span>🐑 牧養</span><span>📋 非牧養</span><span>📚 進修</span></div>';
+  if(staffUsers.length===0)return'<p class="text-muted text-sm">暫無同工數據</p>';
+  const colors={shepherd:'var(--c-shepherd)',admin:'var(--c-admin)',grow:'var(--c-grow)'};
+  let html='';
+  staffUsers.forEach(u=>{const dim=userDim[u.id]||{shepherd:0,admin:0,grow:0};const total=dim.shepherd+dim.admin+dim.grow;if(total===0)return;html+=`<div class="mb-3"><div class="text-xs font-semibold mb-1">${escapeHtml(u.name)} (${total}h)</div><div class="flex gap-1" style="height:18px;border-radius:4px;overflow:hidden">${dim.shepherd>0?`<div style="width:${(dim.shepherd/total*100)}%;background:${colors.shepherd}" title="牧養 ${dim.shepherd}h"></div>`:''}${dim.admin>0?`<div style="width:${(dim.admin/total*100)}%;background:${colors.admin}" title="非牧養 ${dim.admin}h"></div>`:''}${dim.grow>0?`<div style="width:${(dim.grow/total*100)}%;background:${colors.grow}" title="進修 ${dim.grow}h"></div>`:''}</div></div>`;});
+  if(!html)return'<p class="text-muted text-sm">暫無數據</p>';
+  return html+'<div class="flex gap-4 text-xs text-muted mt-2"><span>🐑 牧養</span><span>📋 非牧養</span><span>📚 進修</span></div>';
 }
 
-// ─── Tab 切換 ───
+// ─── Tab ───
 function bindTabEvents() {
   const tabContainer = APP.currentRole === 'admin' ? document.getElementById('adminTabs') : document.getElementById('staffTabs');
   if (!tabContainer) return;
@@ -1289,7 +1214,7 @@ function bindTabEvents() {
   });
 }
 
-// ─── Modal ───
+// ─── Modal & Toast ───
 function showModal(html) {
   const existing = document.querySelector('.modal-overlay');
   if (existing) existing.remove();
@@ -1299,12 +1224,7 @@ function showModal(html) {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
   document.body.appendChild(overlay);
 }
-function closeModal() {
-  const overlay = document.querySelector('.modal-overlay');
-  if (overlay) overlay.remove();
-}
-
-// ─── Toast ───
+function closeModal() { const overlay = document.querySelector('.modal-overlay'); if (overlay) overlay.remove(); }
 function showToast(msg, type) {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
@@ -1315,15 +1235,8 @@ function showToast(msg, type) {
 }
 
 // ─── 工具 ───
-function daysBetween(start, end) {
-  if (!start || !end) return 0;
-  return Math.max(1, Math.round((new Date(end) - new Date(start)) / 86400000) + 1);
-}
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
+function daysBetween(start, end) { if (!start||!end) return 0; return Math.max(1, Math.round((new Date(end)-new Date(start))/86400000)+1); }
+function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
 
 // ─── 跨分頁同步 ───
 window.addEventListener('storage', (e) => {
@@ -1331,15 +1244,11 @@ window.addEventListener('storage', (e) => {
     const payload = JSON.parse(e.newValue || '{}');
     if (payload.action === 'refresh') {
       console.log('[Sync] 偵測到其他分頁的數據變更');
-      if (APP.currentRole) {
-        if (APP.currentRole === 'staff') loadStaffData();
-        else loadAdminData();
-      }
+      if (APP.currentRole) { if (APP.currentRole === 'staff') loadStaffData(); else loadAdminData(); }
       showToast('🔄 數據已從其他分頁同步', 'success');
     }
   }
 });
-
 const _dbPut = dbPut;
 dbPut = async function(storeName, data) {
   const result = await _dbPut(storeName, data);
@@ -1358,8 +1267,8 @@ dbDelete = async function(storeName, id) {
 async function init() {
   await openDB();
   await seedData();
-  console.log('✅ 教會行政管理系統 v2.0.0 初始化完成');
-  console.log('💡 新增：三維度工時分配 · ICS日曆匯出 · BI分析看板 · 活動財務關聯');
+  console.log('✅ 教會行政管理系統 v3.0.0 初始化完成');
+  console.log('💡 新增：年度計劃模塊 · 8種完整假別系統');
 }
 init();
 </script>
