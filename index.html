@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>教會行政管理系統 v3.2.0</title>
+<title>教會行政管理系統 v3.3.0</title>
 <style>
 /* ===== Tailwind-lite Reset & Utility ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -155,7 +155,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="login-card">
     <div style="font-size:3rem;margin-bottom:.5rem">⛪</div>
     <h2 class="text-xl font-bold mb-2">教會行政管理系統</h2>
-    <p class="text-muted text-sm mb-4">Church Administration System — v3.2.0</p>
+    <p class="text-muted text-sm mb-4">Church Administration System — v3.3.0</p>
     <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
       <button class="btn btn-primary btn-lg" style="flex:1" onclick="login('staff')">
         <span class="avatar-circle avatar-staff" style="width:40px;height:40px;font-size:1.2rem;margin:0">👤</span>
@@ -196,8 +196,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 
 <script>
 /* ================================================================
-   教會行政管理系統 v3.2.0
-   事件標題智能級聯連動 · 自定義標題輸入 · 數據分析打通
+   教會行政管理系統 v3.3.0
+   審批核心邏輯打通 · 假期扣減 · 預算扣減 · 人員分賬明細
    ================================================================ */
 
 // ─── 全域狀態 ───
@@ -342,9 +342,9 @@ async function seedData() {
   if (users.length === 0) {
     for (const u of SEED_USERS) await dbPut('users', u);
     // 活動
-    await dbPut('activities', { id: 1, name: '2026夏季佈道會', date: '2026-07-15', budget: 50000, status: 'planned' });
-    await dbPut('activities', { id: 2, name: '2026培靈會', date: '2026-09-20', budget: 30000, status: 'planned' });
-    await dbPut('activities', { id: 3, name: '聖誕節晚會', date: '2026-12-24', budget: 20000, status: 'planned' });
+    await dbPut('activities', { id: 1, name: '2026夏季佈道會', date: '2026-07-15', budget: 50000, spent: 0, status: 'planned' });
+    await dbPut('activities', { id: 2, name: '2026培靈會', date: '2026-09-20', budget: 30000, spent: 0, status: 'planned' });
+    await dbPut('activities', { id: 3, name: '聖誕節晚會', date: '2026-12-24', budget: 20000, spent: 0, status: 'planned' });
     // 請假
     await dbPut('leaveRequests', { id: 1, userId: 'u1', type: 'annual', startDate: '2026-06-15', endDate: '2026-06-17', reason: '家庭旅行', status: 'pending', createdAt: Date.now() });
     await dbPut('leaveRequests', { id: 2, userId: 'u2', type: 'sick', startDate: '2026-06-10', endDate: '2026-06-10', reason: '身體不適', status: 'approved', createdAt: Date.now() - 86400000 });
@@ -1226,10 +1226,80 @@ async function renderApprovals() {
   `;
 }
 
-async function approveLeave(id){await dbPut('leaveRequests',{...(await dbGetAll('leaveRequests')).find(l=>l.id===id),status:'approved'});loadAdminData();showToast('假期已批准 ✓','success');}
-async function rejectLeave(id){await dbPut('leaveRequests',{...(await dbGetAll('leaveRequests')).find(l=>l.id===id),status:'rejected'});loadAdminData();showToast('假期已拒絕','success');}
-async function approveExpense(id){await dbPut('expenseRequests',{...(await dbGetAll('expenseRequests')).find(e=>e.id===id),status:'approved'});loadAdminData();showToast('報銷已批准 ✓','success');}
-async function rejectExpense(id){await dbPut('expenseRequests',{...(await dbGetAll('expenseRequests')).find(e=>e.id===id),status:'rejected'});loadAdminData();showToast('報銷已拒絕','success');}
+async function approveLeave(id) {
+  // 獲取請假記錄
+  const allLeaves = await dbGetAll('leaveRequests');
+  const leaveReq = allLeaves.find(l => l.id === id);
+  if (!leaveReq || leaveReq.status !== 'pending') return;
+
+  // 計算天數
+  const days = daysBetween(leaveReq.startDate, leaveReq.endDate);
+
+  // 扣減員工假期額度（僅追蹤型假別）
+  const leaveDef = LEAVE_TYPES[leaveReq.type];
+  if (leaveDef && leaveDef.trackRemaining) {
+    const users = await dbGetAll('users');
+    const user = users.find(u => u.id === leaveReq.userId);
+    if (user) {
+      if (!user.leaveQuota) user.leaveQuota = {};
+      if (user.leaveQuota[leaveReq.type] === undefined) {
+        user.leaveQuota[leaveReq.type] = leaveDef.defaultQuota;
+      }
+      user.leaveQuota[leaveReq.type] = Math.max(0, (user.leaveQuota[leaveReq.type] || 0) - days);
+      await dbPut('users', user);
+    }
+  }
+
+  // 更新狀態
+  leaveReq.status = 'approved';
+  await dbPut('leaveRequests', leaveReq);
+  loadAdminData();
+  showToast(`假期已批准 ✓ (已扣減 ${leaveDef ? leaveDef.label : ''} ${days} 天)`, 'success');
+}
+
+async function rejectLeave(id) {
+  const allLeaves = await dbGetAll('leaveRequests');
+  const leaveReq = allLeaves.find(l => l.id === id);
+  if (!leaveReq) return;
+  leaveReq.status = 'rejected';
+  await dbPut('leaveRequests', leaveReq);
+  loadAdminData();
+  showToast('假期已拒絕', 'success');
+}
+
+async function approveExpense(id) {
+  // 獲取報銷記錄
+  const allExpenses = await dbGetAll('expenseRequests');
+  const exp = allExpenses.find(e => e.id === id);
+  if (!exp || exp.status !== 'pending') return;
+
+  // 如果關聯了活動，扣減活動剩餘預算
+  if (exp.activityId) {
+    const activities = await dbGetAll('activities');
+    const act = activities.find(a => a.id === exp.activityId);
+    if (act) {
+      if (act.spent === undefined) act.spent = 0;
+      act.spent += exp.amount;
+      await dbPut('activities', act);
+    }
+  }
+
+  // 更新狀態
+  exp.status = 'approved';
+  await dbPut('expenseRequests', exp);
+  loadAdminData();
+  showToast(`報銷已批准 ✓ $${exp.amount.toFixed(2)}`, 'success');
+}
+
+async function rejectExpense(id) {
+  const allExpenses = await dbGetAll('expenseRequests');
+  const exp = allExpenses.find(e => e.id === id);
+  if (!exp) return;
+  exp.status = 'rejected';
+  await dbPut('expenseRequests', exp);
+  loadAdminData();
+  showToast('報銷已拒絕', 'success');
+}
 
 // ─── 全局年度計劃 ───
 async function renderAnnualPlanAll() {
@@ -1263,26 +1333,144 @@ function renderAnnualPlanTableAll(plans, userMap, actMap) {
   return `<table class="table"><thead><tr><th>同工</th><th>月份</th><th>計劃名稱</th><th>事工分類</th><th>關聯活動</th><th>精力%</th></tr></thead><tbody>${plans.sort((a,b)=>a.month-b.month).map(p=>{const cat=MINISTRY_CATEGORIES[p.ministryCategory];const catBadge=p.ministryCategory==='shepherd'?'badge-shepherd':p.ministryCategory==='admin'?'badge-admin-task':'badge-grow';return`<tr><td class="font-medium">${userMap[p.userId]?userMap[p.userId].name:'未知'}</td><td>${monthNames[p.month-1]}</td><td>${escapeHtml(p.name)}</td><td><span class="badge ${catBadge}">${cat?cat.label.slice(0,8):''}</span></td><td class="text-sm text-muted">${p.activityId&&actMap[p.activityId]?actMap[p.activityId]:'—'}</td><td>${p.energyPct}%</td></tr>`;}).join('')}</tbody></table>`;
 }
 
-// ─── 活動與預算 ───
+// ─── 活動與預算 (v3.3: 含 spent 追蹤 + 人員分賬明細) ───
 async function renderActivities() {
   const activities = await dbGetAll('activities');
   const totalBudget = activities.reduce((sum,a)=>sum+(a.budget||0),0);
+  const totalSpent = activities.reduce((sum,a)=>sum+(a.spent||0),0);
   document.getElementById('adminTabContent').innerHTML = `
-    <div class="grid grid-cols-2 gap-4 mb-6"><div class="stat-card"><div class="stat-value">${activities.length}</div><div class="stat-label">年度活動總數</div></div><div class="stat-card"><div class="stat-value">$${totalBudget.toLocaleString()}</div><div class="stat-label">總預算 (HKD)</div></div></div>
-    <div class="card mb-4"><div class="flex items-center justify-between mb-4"><h3 class="section-title" style="margin:0">📊 活動列表</h3><button class="btn btn-primary btn-sm" onclick="openActivityModal()">＋ 新增活動</button></div><div id="activityList">${renderActivityList(activities)}</div></div>
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="stat-card"><div class="stat-value">${activities.length}</div><div class="stat-label">年度活動總數</div></div>
+      <div class="stat-card"><div class="stat-value">$${totalBudget.toLocaleString()}</div><div class="stat-label">總預算 (HKD)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:${totalSpent>totalBudget?'var(--c-danger)':'var(--c-success)'}">$${totalSpent.toLocaleString()}</div><div class="stat-label">已批報銷總額</div></div>
+    </div>
+    <div class="card mb-4">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="section-title" style="margin:0">📊 活動列表</h3>
+        <button class="btn btn-primary btn-sm" onclick="openActivityModal()">＋ 新增活動</button>
+      </div>
+      <div id="activityList">${renderActivityList(activities)}</div>
+    </div>
   `;
 }
 
 function renderActivityList(activities) {
   if (activities.length===0) return '<p class="text-muted text-sm">暫無活動</p>';
   const sl={planned:['籌劃中','info'],ongoing:['進行中','success'],completed:['已完成','muted']};
-  return `<table class="table"><thead><tr><th>活動名稱</th><th>日期</th><th>預算</th><th>狀態</th><th>操作</th></tr></thead><tbody>${activities.map(a=>`<tr><td class="font-medium">${escapeHtml(a.name)}</td><td>${a.date||''}</td><td class="font-semibold">$${(a.budget||0).toLocaleString()}</td><td><span class="badge badge-${sl[a.status||'planned'][1]}">${sl[a.status||'planned'][0]}</span></td><td><button class="btn btn-outline btn-sm mr-2" onclick="editActivity(${a.id})">編輯</button><button class="btn btn-danger btn-sm" onclick="deleteActivity(${a.id})">刪除</button></td></tr>`).join('')}</tbody></table>`;
+  return `<table class="table"><thead><tr><th>活動名稱</th><th>日期</th><th>預算</th><th>已花費</th><th>剩餘</th><th>狀態</th><th>操作</th></tr></thead>
+    <tbody>${activities.map(a=>{
+      const spent=a.spent||0;
+      const remain=(a.budget||0)-spent;
+      const pct=(a.budget||0)>0?Math.round(spent/(a.budget||1)*100):0;
+      return`<tr>
+        <td class="font-medium">${escapeHtml(a.name)}</td>
+        <td>${a.date||''}</td>
+        <td class="font-semibold">$${(a.budget||0).toLocaleString()}</td>
+        <td class="font-semibold" style="color:${pct>100?'var(--c-danger)':'var(--c-text)'}">$${spent.toLocaleString()}</td>
+        <td><span style="color:${remain<0?'var(--c-danger)':'var(--c-success)'}">$${remain.toLocaleString()}</span> <span class="text-xs text-muted">(${pct}%)</span></td>
+        <td><span class="badge badge-${sl[a.status||'planned'][1]}">${sl[a.status||'planned'][0]}</span></td>
+        <td>
+          <button class="btn btn-outline btn-sm mr-1" onclick="showActivityDetail(${a.id})">📋 明細</button>
+          <button class="btn btn-outline btn-sm mr-1" onclick="editActivity(${a.id})">編輯</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteActivity(${a.id})">刪除</button>
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+// ─── 活動詳情 Modal：同工支出貢獻明細 ───
+async function showActivityDetail(actId) {
+  const [activities, expenses, users] = await Promise.all([
+    dbGetAll('activities'), dbGetAll('expenseRequests'), dbGetAll('users')
+  ]);
+  const act = activities.find(a => a.id === actId);
+  if (!act) return;
+
+  const userMap = {}; users.forEach(u => { userMap[u.id] = u; });
+  const actExpenses = expenses.filter(e => e.activityId === actId && e.status === 'approved');
+
+  // 按同工分組
+  const userSpending = {};
+  actExpenses.forEach(e => {
+    const name = userMap[e.userId] ? userMap[e.userId].name : '未知';
+    if (!userSpending[name]) userSpending[name] = { total: 0, items: [] };
+    userSpending[name].total += e.amount;
+    userSpending[name].items.push(e);
+  });
+
+  const budget = act.budget || 0;
+  const spent = act.spent || 0;
+  const remain = budget - spent;
+  const pct = budget > 0 ? Math.round(spent / budget * 100) : 0;
+  const catLabels = { travel:'差旅交通', stationery:'文具用品', meal:'聚餐', custom:'自定義' };
+
+  let detailRows = '';
+  let barHTML = '';
+  const maxSpent = Math.max(...Object.values(userSpending).map(u => u.total), 1);
+
+  if (Object.keys(userSpending).length === 0) {
+    detailRows = '<tr><td colspan="4" class="text-center text-muted">暫無已批准報銷記錄</td></tr>';
+  } else {
+    Object.entries(userSpending).sort((a,b) => b[1].total - a[1].total).forEach(([name, data]) => {
+      // 長條圖
+      barHTML += `<div class="bar-row">
+        <div class="bar-label">${escapeHtml(name)}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${(data.total/maxSpent*100)}%;background:var(--c-primary)">$${data.total.toLocaleString()}</div>
+        </div>
+      </div>`;
+
+      // 明細表
+      data.items.forEach(e => {
+        detailRows += `<tr>
+          <td class="font-medium">${escapeHtml(name)}</td>
+          <td>${catLabels[e.category]||e.category}</td>
+          <td class="font-semibold">$${e.amount.toFixed(2)}</td>
+          <td class="text-sm text-muted">${escapeHtml(e.description||'')}</td>
+        </tr>`;
+      });
+    });
+  }
+
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">📊 ${escapeHtml(act.name)} — 支出明細</h3>
+
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <div class="detail-field text-center">
+        <div class="df-label">撥款預算</div>
+        <div class="df-value font-bold text-lg">$${budget.toLocaleString()}</div>
+      </div>
+      <div class="detail-field text-center">
+        <div class="df-label">已批報銷</div>
+        <div class="df-value font-bold text-lg" style="color:${pct>100?'var(--c-danger)':'var(--c-success)'}">$${spent.toLocaleString()}</div>
+      </div>
+      <div class="detail-field text-center">
+        <div class="df-label">剩餘預算</div>
+        <div class="df-value font-bold text-lg" style="color:${remain<0?'var(--c-danger)':'var(--c-success)'}">$${remain.toLocaleString()}</div>
+      </div>
+    </div>
+
+    <div class="progress-bar mb-4" style="height:10px">
+      <div class="progress-fill progress-${pct>100?'danger':pct>80?'warning':'success'}" style="width:${Math.min(pct,100)}%"></div>
+    </div>
+    <p class="text-xs text-muted mb-4">預算使用率：${pct}% ${pct>100?'⚠️ 超支':''}</p>
+
+    <h3 class="section-title">👥 同工支出貢獻明細</h3>
+    ${barHTML ? `<div class="mb-3">${barHTML}</div>` : '<p class="text-muted text-sm mb-3">暫無數據</p>'}
+
+    <table class="table">
+      <thead><tr><th>同工</th><th>類別</th><th>金額</th><th>描述</th></tr></thead>
+      <tbody>${detailRows}</tbody>
+    </table>
+
+    <button class="btn btn-outline mt-4 btn-block" onclick="closeModal()">關閉</button>
+  `);
 }
 
 function openActivityModal(){showModal(`<h3 class="text-lg font-bold mb-3">新增活動</h3><div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" placeholder="例如：夏季佈道會"></div><div class="grid grid-cols-2 gap-3 mb-3"><div><label class="label">日期</label><input class="input" type="date" id="actDate"></div><div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="0"></div></div><div class="mb-4"><label class="label">狀態</label><select class="select" id="actStatus"><option value="planned">籌劃中</option><option value="ongoing">進行中</option><option value="completed">已完成</option></select></div><div class="flex gap-2"><button class="btn btn-primary btn-block" onclick="saveActivity()">儲存</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>`);}
-async function saveActivity(){const name=document.getElementById('actName').value.trim();const date=document.getElementById('actDate').value;const budget=parseInt(document.getElementById('actBudget').value)||0;const status=document.getElementById('actStatus').value;if(!name){showToast('請填寫活動名稱','error');return;}await dbPut('activities',{name,date,budget,status});closeModal();loadAdminData();showToast('活動已新增 ✓','success');}
+async function saveActivity(){const name=document.getElementById('actName').value.trim();const date=document.getElementById('actDate').value;const budget=parseInt(document.getElementById('actBudget').value)||0;const status=document.getElementById('actStatus').value;if(!name){showToast('請填寫活動名稱','error');return;}await dbPut('activities',{name,date,budget,status,spent:0});closeModal();loadAdminData();showToast('活動已新增 ✓','success');}
 async function editActivity(id){const acts=await dbGetAll('activities');const a=acts.find(x=>x.id===id);if(!a)return;showModal(`<h3 class="text-lg font-bold mb-3">編輯活動</h3><div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" value="${escapeHtml(a.name)}"></div><div class="grid grid-cols-2 gap-3 mb-3"><div><label class="label">日期</label><input class="input" type="date" id="actDate" value="${a.date||''}"></div><div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="${a.budget||0}"></div></div><div class="mb-4"><label class="label">狀態</label><select class="select" id="actStatus"><option value="planned" ${a.status==='planned'?'selected':''}>籌劃中</option><option value="ongoing" ${a.status==='ongoing'?'selected':''}>進行中</option><option value="completed" ${a.status==='completed'?'selected':''}>已完成</option></select></div><div class="flex gap-2"><button class="btn btn-primary" style="flex:1" onclick="updateActivity(${id})">更新</button><button class="btn btn-danger" onclick="deleteActivity(${id});closeModal()">刪除</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>`);}
-async function updateActivity(id){const name=document.getElementById('actName').value.trim();const date=document.getElementById('actDate').value;const budget=parseInt(document.getElementById('actBudget').value)||0;const status=document.getElementById('actStatus').value;if(!name){showToast('請填寫活動名稱','error');return;}await dbPut('activities',{id,name,date,budget,status});closeModal();loadAdminData();showToast('活動已更新 ✓','success');}
+async function updateActivity(id){const name=document.getElementById('actName').value.trim();const date=document.getElementById('actDate').value;const budget=parseInt(document.getElementById('actBudget').value)||0;const status=document.getElementById('actStatus').value;if(!name){showToast('請填寫活動名稱','error');return;}const acts=await dbGetAll('activities');const existing=acts.find(x=>x.id===id);const spent=(existing&&existing.spent!==undefined)?existing.spent:0;await dbPut('activities',{id,name,date,budget,status,spent});closeModal();loadAdminData();showToast('活動已更新 ✓','success');}
 async function deleteActivity(id){await dbDelete('activities',id);loadAdminData();showToast('活動已刪除','success');}
 
 // ─── 人員管理 v3 ───
@@ -1335,7 +1523,8 @@ async function renderAdminAnalytics() {
   if(selectedActivity){
     const actExpenses=expenses.filter(e=>e.activityId===selectedActivity.id&&e.status==='approved');
     const actEvents=events.filter(e=>e.activityId===selectedActivity.id);
-    const actualSpent=actExpenses.reduce((s,e)=>s+e.amount,0);
+    // v3.3: 優先使用 activity.spent，確保與審批扣減一致
+    const actualSpent=selectedActivity.spent!==undefined?selectedActivity.spent:actExpenses.reduce((s,e)=>s+e.amount,0);
     const totalActHours=actEvents.reduce((s,e)=>s+(e.hours||0),0);
     const budget=selectedActivity.budget||0;const maxVal=Math.max(budget,actualSpent,1);const spentPct=budget>0?Math.round(actualSpent/budget*100):0;
     budgetCompHTML=`<h3 class="section-title">📊 ${escapeHtml(selectedActivity.name)} — 預算與實際對比</h3>
@@ -1433,8 +1622,8 @@ dbDelete = async function(storeName, id) {
 async function init() {
   await openDB();
   await seedData();
-  console.log('✅ 教會行政管理系統 v3.2.0 初始化完成');
-  console.log('💡 新增：事件標題級聯下拉 · 三維度細分選項 · 自定義標題輸入');
+  console.log('✅ 教會行政管理系統 v3.3.0 初始化完成');
+  console.log('💡 新增：假期扣減聯動 · 預算扣減聯動 · 人員分賬明細');
 }
 init();
 </script>
