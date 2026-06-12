@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>教會行政管理系統 v3.5.0</title>
+<title>教會行政管理系統 v3.6.0</title>
 <style>
 /* ===== Tailwind-lite Reset & Utility ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -160,7 +160,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="login-card">
     <div style="font-size:3rem;margin-bottom:.5rem">⛪</div>
     <h2 class="text-xl font-bold mb-2">教會行政管理系統</h2>
-    <p class="text-muted text-sm mb-4">Church Administration System — v3.5.0</p>
+    <p class="text-muted text-sm mb-4">Church Administration System — v3.6.0</p>
     <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
       <button class="btn btn-primary btn-lg" style="flex:1" onclick="login('staff')">
         <span class="avatar-circle avatar-staff" style="width:40px;height:40px;font-size:1.2rem;margin:0">👤</span>
@@ -201,7 +201,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 
 <script>
 /* ================================================================
-   教會行政管理系統 v3.5.0
+   教會行政管理系統 v3.6.0
    財務超支預警 · 人事對賬 · 同工個人報銷上限
    ================================================================ */
 
@@ -1122,7 +1122,10 @@ function renderExpenseList(expenses, activities) {
   if (expenses.length === 0) return '<p class="text-muted text-sm">暫無報銷記錄</p>';
   const catLabels = { travel:'差旅交通', stationery:'文具用品', meal:'聚餐', custom:'自定義' };
   const actMap = {}; activities.forEach(a => { actMap[a.id] = a.name; });
-  return `<table class="table"><thead><tr><th>類別</th><th>金額</th><th>關聯活動</th><th>描述</th><th>日期</th><th>狀態</th></tr></thead><tbody>${expenses.sort((a,b)=>b.createdAt-a.createdAt).map(e=>`<tr><td>${catLabels[e.category]||e.category}</td><td class="font-semibold">$${e.amount.toFixed(2)}</td><td class="text-sm text-muted">${e.activityId&&actMap[e.activityId]?actMap[e.activityId]:'—'}</td><td>${escapeHtml(e.description||'')}</td><td class="text-sm text-muted">${new Date(e.createdAt).toLocaleDateString('zh-HK')}</td><td><span class="badge badge-${LEAVE_STATUS_LABELS[e.status][1]}">${LEAVE_STATUS_LABELS[e.status][0]}</span></td></tr>`).join('')}</tbody></table>`;
+  return `<table class="table"><thead><tr><th>類別</th><th>金額</th><th>關聯活動</th><th>描述</th><th>日期</th><th>狀態</th><th>操作</th></tr></thead><tbody>${expenses.sort((a,b)=>b.createdAt-a.createdAt).map(e=>{
+    const isPending=e.status==='pending';
+    const actBtns=isPending?`<button class="btn btn-outline btn-sm mr-1" onclick="editExpenseItem(${e.id})">✏️</button><button class="btn btn-danger btn-sm mr-1" onclick="confirmDeleteExpense(${e.id})">🗑️</button>`:'';
+    return`<tr><td>${catLabels[e.category]||e.category}</td><td class="font-semibold">$${e.amount.toFixed(2)}</td><td class="text-sm text-muted">${e.activityId&&actMap[e.activityId]?actMap[e.activityId]:'—'}</td><td>${escapeHtml(e.description||'')}</td><td class="text-sm text-muted">${new Date(e.createdAt).toLocaleDateString('zh-HK')}</td><td><span class="badge badge-${LEAVE_STATUS_LABELS[e.status][1]}">${LEAVE_STATUS_LABELS[e.status][0]}</span></td><td><button class="btn btn-outline btn-sm mr-1" onclick="showExpenseDetail(${e.id})">📋</button>${actBtns}</td></tr>`;}).join('')}</tbody></table>`;
 }
 
 async function submitExpense(e) {
@@ -1137,6 +1140,81 @@ async function submitExpense(e) {
   const displayCategory = category === 'custom' && customName ? customName : category;
   await dbPut('expenseRequests', { userId: APP.currentUser.id, category: displayCategory, amount, description, activityId, status: 'pending', createdAt: Date.now() });
   renderExpense(); showToast('報銷申請已提交 ✓', 'success');
+}
+
+// ─── 員工報銷自助管理 (v3.6: 明細/編輯/刪除) ───
+async function showExpenseDetail(id){
+  const allExp=await dbGetAll('expenseRequests');
+  const e=allExp.find(x=>x.id===id);if(!e)return;
+  const cl={travel:'差旅交通',stationery:'文具用品',meal:'聚餐',custom:'自定義'};
+  const acts=await dbGetAll('activities');
+  const actMap={};acts.forEach(a=>{actMap[a.id]=a.name;});
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">📋 報銷明細</h3>
+    <div class="detail-field"><div class="df-label">類別</div><div class="df-value">${cl[e.category]||e.category}</div></div>
+    <div class="detail-field"><div class="df-label">金額</div><div class="df-value font-semibold">$${e.amount.toFixed(2)}</div></div>
+    <div class="detail-field"><div class="df-label">關聯活動</div><div class="df-value">${e.activityId&&actMap[e.activityId]?actMap[e.activityId]:'—'}</div></div>
+    <div class="detail-field"><div class="df-label">描述</div><div class="df-value">${escapeHtml(e.description||'—')}</div></div>
+    <div class="detail-field"><div class="df-label">申請日期</div><div class="df-value">${new Date(e.createdAt).toLocaleDateString('zh-HK')}</div></div>
+    <div class="detail-field"><div class="df-label">狀態</div><div class="df-value"><span class="badge badge-${LEAVE_STATUS_LABELS[e.status][1]}">${LEAVE_STATUS_LABELS[e.status][0]}</span></div></div>
+    <button class="btn btn-outline mt-4 btn-block" onclick="closeModal()">關閉</button>
+  `);
+}
+
+async function editExpenseItem(id){
+  const allExp=await dbGetAll('expenseRequests');
+  const e=allExp.find(x=>x.id===id);
+  if(!e||e.status!=='pending'){showToast('只能編輯待審批的報銷','error');return;}
+  const acts=await dbGetAll('activities');
+  const actOpts='<option value="">（無）</option>'+acts.map(a=>`<option value="${a.id}"${e.activityId===a.id?' selected':''}>${escapeHtml(a.name)}</option>`).join('');
+  const catOpts=[{v:'travel',l:'🚗 差旅交通'},{v:'stationery',l:'📎 文具用品'},{v:'meal',l:'🍽️ 聚餐'},{v:'custom',l:'📝 自定義項目'}];
+  const catSel=catOpts.map(c=>`<option value="${c.v}"${e.category===c.v?' selected':''}>${c.l}</option>`).join('');
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">✏️ 編輯報銷</h3>
+    <form onsubmit="saveExpenseEdit(event,${id})" style="display:flex;flex-direction:column;gap:.75rem">
+      <div><label class="label">報銷類別</label><select class="select" id="editExpCat" required>${catSel}</select></div>
+      <div><label class="label">關聯年度活動</label><select class="select" id="editExpAct">${actOpts}</select></div>
+      <div><label class="label">金額 (HKD)</label><input class="input" type="number" id="editExpAmt" value="${e.amount}" min="0" step="0.01" required></div>
+      <div><label class="label">描述</label><textarea class="textarea" id="editExpDesc">${escapeHtml(e.description||'')}</textarea></div>
+      <div class="flex gap-2"><button class="btn btn-primary" style="flex:1" type="submit">儲存</button><button class="btn btn-outline" type="button" onclick="closeModal()">取消</button></div>
+    </form>
+  `);
+}
+
+async function saveExpenseEdit(ev,id){
+  ev.preventDefault();
+  const allExp=await dbGetAll('expenseRequests');
+  const e=allExp.find(x=>x.id===id);if(!e)return;
+  e.category=document.getElementById('editExpCat').value;
+  const actVal=document.getElementById('editExpAct').value;
+  e.activityId=actVal?parseInt(actVal):null;
+  e.amount=parseFloat(document.getElementById('editExpAmt').value);
+  e.description=document.getElementById('editExpDesc').value.trim();
+  if(!e.amount||e.amount<=0){showToast('請輸入有效金額','error');return;}
+  await dbPut('expenseRequests',e);
+  closeModal();renderExpense();showToast('報銷已更新 ✓','success');
+}
+
+async function confirmDeleteExpense(id){
+  const allExp=await dbGetAll('expenseRequests');
+  const e=allExp.find(x=>x.id===id);
+  if(!e||e.status!=='pending'){showToast('只能刪除待審批的報銷','error');return;}
+  showModal(`
+    <h3 class="text-lg font-bold mb-3" style="color:var(--c-danger)">⚠️ 確認刪除報銷</h3>
+    <p class="mb-2">您確定要刪除這筆報銷嗎？</p>
+    <div class="detail-field"><div class="df-label">金額</div><div class="df-value font-semibold" style="color:var(--c-danger)">$${e.amount.toFixed(2)}</div></div>
+    <div class="detail-field"><div class="df-label">描述</div><div class="df-value">${escapeHtml(e.description||'—')}</div></div>
+    <p class="text-sm text-muted mb-4">此操作不可撤銷，管理員端將同步移除。</p>
+    <div class="flex gap-2">
+      <button class="btn btn-danger" style="flex:1" onclick="deleteExpenseItem(${id})">確認刪除</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  `);
+}
+
+async function deleteExpenseItem(id){
+  await dbDelete('expenseRequests',id);
+  closeModal();renderExpense();showToast('報銷已刪除 ✓','success');
 }
 
 // ─── 員工 BI 分析 ───
@@ -1908,7 +1986,7 @@ dbDelete = async function(storeName, id) {
 async function init() {
   await openDB();
   await seedData();
-  console.log('✅ 教會行政管理系統 v3.5.0 初始化完成');
+  console.log('✅ 教會行政管理系統 v3.6.0 初始化完成');
   console.log('💡 新增：活動編輯保留spent · 刪除清除關聯 · 確認刪除彈窗');
 }
 init();
