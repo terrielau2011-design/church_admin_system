@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>教會行政管理系統 v3.4.0</title>
+<title>教會行政管理系統 v3.5.0</title>
 <style>
 /* ===== Tailwind-lite Reset & Utility ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -146,6 +146,11 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .detail-field{background:var(--c-bg);border-radius:8px;padding:.65rem .85rem;margin-bottom:.5rem}
 .detail-field .df-label{font-size:.7rem;font-weight:600;color:var(--c-muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.15rem}
 .detail-field .df-value{font-size:.85rem;color:var(--c-text)}
+/* Overspense blink animation */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.blink-warn{animation:blink 1.2s infinite;color:var(--c-danger);font-weight:700}
+.overspend-row{background:#fef2f2 !important}
+.overspend-row:hover{background:#fee2e2 !important}
 </style>
 </head>
 <body>
@@ -155,7 +160,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="login-card">
     <div style="font-size:3rem;margin-bottom:.5rem">⛪</div>
     <h2 class="text-xl font-bold mb-2">教會行政管理系統</h2>
-    <p class="text-muted text-sm mb-4">Church Administration System — v3.4.0</p>
+    <p class="text-muted text-sm mb-4">Church Administration System — v3.5.0</p>
     <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
       <button class="btn btn-primary btn-lg" style="flex:1" onclick="login('staff')">
         <span class="avatar-circle avatar-staff" style="width:40px;height:40px;font-size:1.2rem;margin:0">👤</span>
@@ -196,8 +201,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 
 <script>
 /* ================================================================
-   教會行政管理系統 v3.4.0
-   活動預算增刪查改 · 編輯保留spent · 刪除清除關聯
+   教會行政管理系統 v3.5.0
+   財務超支預警 · 人事對賬 · 同工個人報銷上限
    ================================================================ */
 
 // ─── 全域狀態 ───
@@ -325,15 +330,15 @@ function dbGetByIndex(storeName, indexName, value) {
 
 // ─── 種子數據 v3.1（含自定義欄位）───
 const SEED_USERS = [
-  { id: 'u1', name: '陳牧師', role: 'staff',
+  { id: 'u1', name: '陳牧師', role: 'staff', expenseLimit: 20000,
     leaveQuota: { annual:14, rest:0, compensation:0, sick:30, injury:0, maternity:0, marriage:3, compassionate:3 } },
-  { id: 'u2', name: '李傳道', role: 'staff',
+  { id: 'u2', name: '李傳道', role: 'staff', expenseLimit: 15000,
     leaveQuota: { annual:12, rest:0, compensation:2, sick:30, injury:0, maternity:0, marriage:3, compassionate:3 } },
-  { id: 'u3', name: '王傳道', role: 'staff',
+  { id: 'u3', name: '王傳道', role: 'staff', expenseLimit: 15000,
     leaveQuota: { annual:10, rest:0, compensation:0, sick:30, injury:0, maternity:0, marriage:3, compassionate:3 } },
-  { id: 'u4', name: '張姑娘', role: 'staff',
+  { id: 'u4', name: '張姑娘', role: 'staff', expenseLimit: 18000,
     leaveQuota: { annual:14, rest:0, compensation:3, sick:30, injury:0, maternity:0, marriage:3, compassionate:3 } },
-  { id: 'admin1', name: '行政主任', role: 'admin',
+  { id: 'admin1', name: '行政主任', role: 'admin', expenseLimit: 25000,
     leaveQuota: { annual:18, rest:0, compensation:0, sick:30, injury:0, maternity:0, marriage:3, compassionate:3 } }
 ];
 
@@ -1040,8 +1045,27 @@ async function renderLeave() {
   });
   const leaveTypeOpts = Object.entries(LEAVE_TYPES).map(([k,v]) => `<option value="${k}">${v.icon} ${v.label}</option>`).join('');
 
+  // 個人報銷預算進度
+  const allExpenses = await dbGetAll('expenseRequests');
+  const myApprovedExpenses = allExpenses.filter(e => e.userId === APP.currentUser.id && e.status === 'approved');
+  const myTotalSpent = myApprovedExpenses.reduce((s, e) => s + e.amount, 0);
+  const myLimit = userData.expenseLimit || 0;
+  const myPct = myLimit > 0 ? Math.round(myTotalSpent / myLimit * 100) : 0;
+  const myIsOver = myTotalSpent > myLimit && myLimit > 0;
+
   document.getElementById('staffTabContent').innerHTML = `
     <div class="card mb-4"><h3 class="section-title">📊 假期餘額總覽</h3><div class="quota-grid">${quotaCards}</div></div>
+    ${myLimit > 0 ? `
+    <div class="card mb-4">
+      <h3 class="section-title">💰 個人年度報銷預算</h3>
+      <div class="grid grid-cols-3 gap-3 mb-3">
+        <div class="detail-field text-center"><div class="df-label">個人年度上限</div><div class="df-value font-bold">$${myLimit.toLocaleString()}</div></div>
+        <div class="detail-field text-center"><div class="df-label">已批報銷</div><div class="df-value font-bold" style="color:${myIsOver?'var(--c-danger)':'var(--c-text)'}">$${myTotalSpent.toLocaleString()}</div></div>
+        <div class="detail-field text-center"><div class="df-label">剩餘額度</div><div class="df-value font-bold" style="color:${(myLimit-myTotalSpent)<0?'var(--c-danger)':'var(--c-success)'}">$${(myLimit-myTotalSpent).toLocaleString()}</div></div>
+      </div>
+      <div class="progress-bar mb-2" style="height:10px"><div class="progress-fill progress-${myIsOver?'danger':myPct>80?'warning':'success'}" style="width:${Math.min(myPct,100)}%"></div></div>
+      <p class="text-xs text-muted">使用率：${myPct}% ${myIsOver?'<span class="blink-warn">⚠️ 已超出個人年度上限！</span>':''}</p>
+    </div>` : ''}
     <div class="grid grid-cols-3 gap-4">
       <div class="card" style="grid-column:span 2"><h3 class="section-title">📋 請假記錄</h3>${renderLeaveListV3(leaves)}</div>
       <div class="card"><h3 class="section-title">✍️ 申請假期</h3>
@@ -1215,13 +1239,44 @@ async function renderApprovals() {
   const pendingLeaves=leaveReqs.filter(l=>l.status==='pending');
   const pendingExpenses=expenseReqs.filter(e=>e.status==='pending');
 
+  // 預算預警：計算每位同工已批准報銷總額 + 個人上限
+  const userBudgetInfo={};
+  users.forEach(u=>{
+    if(u.expenseLimit){
+      const approved=expenseReqs.filter(e=>e.userId===u.id&&e.status==='approved');
+      const totalSpent=approved.reduce((s,e)=>s+e.amount,0);
+      userBudgetInfo[u.id]={limit:u.expenseLimit,spent:totalSpent};
+    }
+  });
+
   document.getElementById('adminTabContent').innerHTML = `
     <div class="grid grid-cols-2 gap-4 mb-6"><div class="stat-card"><div class="stat-value">${pendingLeaves.length}</div><div class="stat-label">待審假期</div></div><div class="stat-card"><div class="stat-value">${pendingExpenses.length}</div><div class="stat-label">待審報銷</div></div></div>
     <div class="card mb-4"><h3 class="section-title">🏖️ 假期審批</h3>
       ${pendingLeaves.length===0?'<p class="text-muted text-sm">暫無待審假期</p>':`<table class="table"><thead><tr><th>申請人</th><th>類型</th><th>日期</th><th>天數</th><th>原因</th><th>操作</th></tr></thead><tbody>${pendingLeaves.map(l=>{const lt=LEAVE_TYPES[l.type]||{label:l.type,icon:'📋'};return`<tr><td class="font-medium">${userMap[l.userId]||'未知'}</td><td>${lt.icon} ${lt.label}</td><td>${l.startDate} 至 ${l.endDate}</td><td>${daysBetween(l.startDate,l.endDate)}天</td><td>${escapeHtml(l.reason||'')}</td><td><button class="btn btn-success btn-sm mr-2" onclick="approveLeave(${l.id})">✓ 批准</button><button class="btn btn-danger btn-sm" onclick="rejectLeave(${l.id})">✗ 拒絕</button></td></tr>`;}).join('')}</tbody></table>`}
     </div>
     <div class="card"><h3 class="section-title">💰 報銷審批</h3>
-      ${pendingExpenses.length===0?'<p class="text-muted text-sm">暫無待審報銷</p>':`<table class="table"><thead><tr><th>申請人</th><th>類別</th><th>金額</th><th>關聯活動</th><th>描述</th><th>操作</th></tr></thead><tbody>${pendingExpenses.map(e=>{const cl={travel:'差旅交通',stationery:'文具用品',meal:'聚餐',custom:'自定義'};return`<tr><td class="font-medium">${userMap[e.userId]||'未知'}</td><td>${cl[e.category]||e.category}</td><td class="font-semibold">$${e.amount.toFixed(2)}</td><td class="text-sm text-muted">${e.activityId&&actMap[e.activityId]?actMap[e.activityId]:'—'}</td><td>${escapeHtml(e.description||'')}</td><td><button class="btn btn-success btn-sm mr-2" onclick="approveExpense(${e.id})">✓ 批准</button><button class="btn btn-danger btn-sm" onclick="rejectExpense(${e.id})">✗ 拒絕</button></td></tr>`;}).join('')}</tbody></table>`}
+      ${pendingExpenses.length===0?'<p class="text-muted text-sm">暫無待審報銷</p>':`<table class="table"><thead><tr><th>申請人</th><th>類別</th><th>金額</th><th>預算狀態</th><th>關聯活動</th><th>描述</th><th>操作</th></tr></thead><tbody>${pendingExpenses.map(e=>{
+        const cl={travel:'差旅交通',stationery:'文具用品',meal:'聚餐',custom:'自定義'};
+        const bi=userBudgetInfo[e.userId];
+        let budgetHtml='';
+        if(bi){
+          const afterApproval=bi.spent+e.amount;
+          const willOverspend=afterApproval>bi.limit;
+          const alreadyOverspend=bi.spent>bi.limit;
+          const pct=Math.min(100,Math.round(bi.spent/bi.limit*100));
+          const afterPct=Math.min(150,Math.round(afterApproval/bi.limit*100));
+          if(alreadyOverspend){
+            budgetHtml=`<div class="text-xs"><span class="blink-warn" style="color:#ef4444;font-weight:700;">⚠️ 已超支！</span><br/>$${bi.spent.toLocaleString()}/$${bi.limit.toLocaleString()}</div>`;
+          }else if(willOverspend){
+            budgetHtml=`<div class="text-xs"><span style="color:#ef4444;font-weight:700;">🔴 批准將超支！</span><br/>$${bi.spent.toLocaleString()}→$${afterApproval.toLocaleString()}/$${bi.limit.toLocaleString()}</div>`;
+          }else{
+            const barColor=pct>=80?'#f59e0b':'#22c55e';
+            budgetHtml=`<div class="text-xs"><div style="background:#e5e7eb;border-radius:4px;height:6px;width:100%;margin-bottom:2px;"><div style="background:${barColor};height:6px;border-radius:4px;width:${pct}%;"></div></div>$${bi.spent.toLocaleString()}/$${bi.limit.toLocaleString()} (${pct}%)</div>`;
+          }
+        }else{
+          budgetHtml='<span class="text-muted text-xs">未設上限</span>';
+        }
+        return`<tr${bi&&bi.spent>bi.limit?' class="overspend-row"':''}><td class="font-medium">${userMap[e.userId]||'未知'}</td><td>${cl[e.category]||e.category}</td><td class="font-semibold">$${e.amount.toFixed(2)}</td><td>${budgetHtml}</td><td class="text-sm text-muted">${e.activityId&&actMap[e.activityId]?actMap[e.activityId]:'—'}</td><td>${escapeHtml(e.description||'')}</td><td><button class="btn btn-success btn-sm mr-2" onclick="approveExpense(${e.id})">✓ 批准</button><button class="btn btn-danger btn-sm" onclick="rejectExpense(${e.id})">✗ 拒絕</button></td></tr>`;}).join('')}</tbody></table>`}
     </div>
   `;
 }
@@ -1287,8 +1342,22 @@ async function approveExpense(id) {
   // 更新狀態
   exp.status = 'approved';
   await dbPut('expenseRequests', exp);
+
+  // 檢查同工個人年度預算是否超支
+  const users = await dbGetAll('users');
+  const user = users.find(u => u.id === exp.userId);
+  let overspent = false;
+  if (user && user.expenseLimit) {
+    const allApproved = allExpenses.filter(e => e.userId === exp.userId && e.status === 'approved');
+    const totalSpent = allApproved.reduce((s, e) => s + e.amount, 0);
+    if (totalSpent > user.expenseLimit) {
+      overspent = true;
+      showToast(`⚠️ ${user.name} 已超出個人年度預算上限！($${totalSpent.toLocaleString()} / $${user.expenseLimit.toLocaleString()})`, 'error');
+    }
+  }
+
   loadAdminData();
-  showToast(`報銷已批准 ✓ $${exp.amount.toFixed(2)}`, 'success');
+  if (!overspent) showToast(`報銷已批准 ✓ $${exp.amount.toFixed(2)}`, 'success');
 }
 
 async function rejectExpense(id) {
@@ -1333,17 +1402,21 @@ function renderAnnualPlanTableAll(plans, userMap, actMap) {
   return `<table class="table"><thead><tr><th>同工</th><th>月份</th><th>計劃名稱</th><th>事工分類</th><th>關聯活動</th><th>精力%</th></tr></thead><tbody>${plans.sort((a,b)=>a.month-b.month).map(p=>{const cat=MINISTRY_CATEGORIES[p.ministryCategory];const catBadge=p.ministryCategory==='shepherd'?'badge-shepherd':p.ministryCategory==='admin'?'badge-admin-task':'badge-grow';return`<tr><td class="font-medium">${userMap[p.userId]?userMap[p.userId].name:'未知'}</td><td>${monthNames[p.month-1]}</td><td>${escapeHtml(p.name)}</td><td><span class="badge ${catBadge}">${cat?cat.label.slice(0,8):''}</span></td><td class="text-sm text-muted">${p.activityId&&actMap[p.activityId]?actMap[p.activityId]:'—'}</td><td>${p.energyPct}%</td></tr>`;}).join('')}</tbody></table>`;
 }
 
-// ─── 活動與預算 (v3.3: 含 spent 追蹤 + 人員分賬明細) ───
+// ─── 活動與預算 (v3.5: 全局KPI卡 + 超支紅色警示) ───
 async function renderActivities() {
-  const activities = await dbGetAll('activities');
+  const [activities, expenses] = await Promise.all([dbGetAll('activities'), dbGetAll('expenseRequests')]);
   const totalBudget = activities.reduce((sum,a)=>sum+(a.budget||0),0);
   const totalSpent = activities.reduce((sum,a)=>sum+(a.spent||0),0);
+  const totalRemain = totalBudget - totalSpent;
+  const hasOverspend = activities.some(a => (a.spent||0) > (a.budget||0));
+
   document.getElementById('adminTabContent').innerHTML = `
     <div class="grid grid-cols-3 gap-4 mb-6">
-      <div class="stat-card"><div class="stat-value">${activities.length}</div><div class="stat-label">年度活動總數</div></div>
-      <div class="stat-card"><div class="stat-value">$${totalBudget.toLocaleString()}</div><div class="stat-label">總預算 (HKD)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:${totalSpent>totalBudget?'var(--c-danger)':'var(--c-success)'}">$${totalSpent.toLocaleString()}</div><div class="stat-label">已批報銷總額</div></div>
+      <div class="stat-card"><div class="stat-value">$${totalBudget.toLocaleString()}</div><div class="stat-label">全教會年度預算總額</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--c-danger)">$${totalSpent.toLocaleString()}</div><div class="stat-label">全教會累計已報銷總額</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:${totalRemain<0?'var(--c-danger)':'var(--c-success)'}">$${totalRemain.toLocaleString()}</div><div class="stat-label">全教會當前剩餘預算</div></div>
     </div>
+    ${hasOverspend ? '<div class="health-alert warn mb-4"><span style="font-size:1.25rem">⚠️</span><span><strong>超支警告：</strong>有活動的已批報銷金額超過預算，請立即核查！</span></div>' : ''}
     <div class="card mb-4">
       <div class="flex items-center justify-between mb-4">
         <h3 class="section-title" style="margin:0">📊 活動列表</h3>
@@ -1362,17 +1435,19 @@ function renderActivityList(activities) {
       const spent=a.spent||0;
       const remain=(a.budget||0)-spent;
       const pct=(a.budget||0)>0?Math.round(spent/(a.budget||1)*100):0;
-      return`<tr>
-        <td class="font-medium">${escapeHtml(a.name)}</td>
+      const isOverspent=spent>(a.budget||0);
+      const rowCls=isOverspent?'overspend-row':'';
+      return`<tr class="${rowCls}">
+        <td class="font-medium">${escapeHtml(a.name)} ${isOverspent?'<span class="blink-warn text-xs">⚠️ 已超支！</span>':''}</td>
         <td>${a.date||''}</td>
         <td class="font-semibold">$${(a.budget||0).toLocaleString()}</td>
-        <td class="font-semibold" style="color:${pct>100?'var(--c-danger)':'var(--c-text)'}">$${spent.toLocaleString()}</td>
+        <td class="font-semibold" style="color:${isOverspent?'var(--c-danger)':'var(--c-text)'}">$${spent.toLocaleString()}</td>
         <td><span style="color:${remain<0?'var(--c-danger)':'var(--c-success)'}">$${remain.toLocaleString()}</span> <span class="text-xs text-muted">(${pct}%)</span></td>
         <td><span class="badge badge-${sl[a.status||'planned'][1]}">${sl[a.status||'planned'][0]}</span></td>
         <td>
           <button class="btn btn-outline btn-sm mr-1" onclick="showActivityDetail(${a.id})">📋 明細</button>
-          <button class="btn btn-outline btn-sm mr-1" onclick="editActivity(${a.id})">編輯</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteActivity(${a.id})">刪除</button>
+          <button class="btn btn-outline btn-sm mr-1" onclick="editActivity(${a.id})">✏️ 編輯</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDeleteActivity(${a.id})">🗑️ 刪除</button>
         </td>
       </tr>`;
     }).join('')}</tbody></table>`;
@@ -1563,17 +1638,138 @@ async function deleteActivity(id){
   closeModal();loadAdminData();showToast('活動已刪除，關聯數據已清除 ✓','success');
 }
 
-// ─── 人員管理 v3 ───
+// ─── 人員管理 (v3.5: 假期明細 + 個人報銷上限 + 預算進度條) ───
 async function renderPersonnel() {
-  const users = await dbGetAll('users');
+  const [users, leaves, expenses] = await Promise.all([dbGetAll('users'), dbGetAll('leaveRequests'), dbGetAll('expenseRequests')]);
   const staffUsers = users.filter(u => u.role === 'staff');
   const trackableTypes = Object.entries(LEAVE_TYPES).filter(([k,v]) => v.trackRemaining);
+
   document.getElementById('adminTabContent').innerHTML = `
-    <div class="card"><h3 class="section-title">👥 同工名單與假別額度</h3>
-      <table class="table"><thead><tr><th>姓名</th><th>角色</th>${trackableTypes.map(([k,v])=>`<th class="text-center">${v.icon}<br>${v.label}</th>`).join('')}<th>操作</th></tr></thead>
-        <tbody>${staffUsers.map(u=>{const q=u.leaveQuota||{};return`<tr><td class="font-medium">${escapeHtml(u.name)}</td><td><span class="badge badge-info">同工</span></td>${trackableTypes.map(([k,v])=>`<td class="text-center">${q[k]!==undefined?q[k]:v.defaultQuota}</td>`).join('')}<td><button class="btn btn-outline btn-sm" onclick="editUserLeaveAll('${u.id}')">調整假別</button></td></tr>`;}).join('')}</tbody></table>
+    <div class="card mb-4">
+      <h3 class="section-title">👥 同工名單、假別額度與個人預算</h3>
+      <table class="table"><thead><tr><th>姓名</th>${trackableTypes.map(([k,v])=>`<th class="text-center">${v.icon}<br>${v.label}</th>`).join('')}<th>個人年度預算上限</th><th>個人已報銷</th><th>預算進度</th><th>操作</th></tr></thead>
+        <tbody>${staffUsers.map(u=>{
+          const q=u.leaveQuota||{};
+          const limit=u.expenseLimit||0;
+          const userExpenses=expenses.filter(e=>e.userId===u.id&&e.status==='approved');
+          const totalSpent=userExpenses.reduce((s,e)=>s+e.amount,0);
+          const pct=limit>0?Math.round(totalSpent/limit*100):0;
+          const isOver=totalSpent>limit&&limit>0;
+          return`<tr class="${isOver?'overspend-row':''}">
+            <td class="font-medium">${escapeHtml(u.name)} ${isOver?'<span class="blink-warn text-xs">⚠️超支</span>':''}</td>
+            ${trackableTypes.map(([k,v])=>`<td class="text-center">${q[k]!==undefined?q[k]:v.defaultQuota}</td>`).join('')}
+            <td class="text-center font-semibold">$${limit>0?limit.toLocaleString():'未設'}</td>
+            <td class="text-center" style="color:${isOver?'var(--c-danger)':'var(--c-text)'}">$${totalSpent.toLocaleString()}</td>
+            <td style="min-width:120px">
+              <div class="progress-bar"><div class="progress-fill progress-${isOver?'danger':pct>80?'warning':'success'}" style="width:${Math.min(pct,100)}%"></div></div>
+              <span class="text-xs text-muted">${pct}%</span>
+            </td>
+            <td>
+              <button class="btn btn-outline btn-sm mr-1" onclick="showUserDetail('${u.id}')">📋 明細</button>
+              <button class="btn btn-outline btn-sm mr-1" onclick="editUserLeaveAll('${u.id}')">調整假別</button>
+              <button class="btn btn-outline btn-sm" onclick="editUserExpenseLimit('${u.id}')">💰 預算上限</button>
+            </td>
+          </tr>`;
+        }).join('')}</tbody></table>
     </div>
   `;
+}
+
+// ─── 同工明細 Modal：假期歷史 + 報銷歷史 ───
+async function showUserDetail(userId) {
+  const [users, leaves, expenses] = await Promise.all([dbGetAll('users'), dbGetAll('leaveRequests'), dbGetAll('expenseRequests')]);
+  const u = users.find(x => x.id === userId);
+  if (!u) return;
+  const q = u.leaveQuota || {};
+  const limit = u.expenseLimit || 0;
+
+  // 已批准假期
+  const approvedLeaves = leaves.filter(l => l.userId === userId && l.status === 'approved').sort((a,b) => b.createdAt - a.createdAt);
+  // 已批准報銷
+  const approvedExpenses = expenses.filter(e => e.userId === userId && e.status === 'approved').sort((a,b) => b.createdAt - a.createdAt);
+  const totalSpent = approvedExpenses.reduce((s, e) => s + e.amount, 0);
+
+  const trackableTypes = Object.entries(LEAVE_TYPES).filter(([k,v]) => v.trackRemaining);
+  const leaveBalanceHTML = trackableTypes.map(([k, v]) => {
+    const remain = q[k] !== undefined ? q[k] : v.defaultQuota;
+    return `<div class="quota-item"><div class="q-val">${remain}</div><div class="q-lbl">${v.icon} ${v.label}</div></div>`;
+  }).join('');
+
+  const leaveRows = approvedLeaves.length === 0 ? '<tr><td colspan="5" class="text-center text-muted">暫無已批准假期</td></tr>' :
+    approvedLeaves.map(l => {
+      const lt = LEAVE_TYPES[l.type] || { label: l.type, icon: '📋' };
+      return `<tr><td>${lt.icon} ${lt.label}</td><td>${l.startDate} 至 ${l.endDate}</td><td>${daysBetween(l.startDate,l.endDate)}天</td><td>${escapeHtml(l.reason||'')}</td><td><span class="badge badge-success">已批准</span></td></tr>`;
+    }).join('');
+
+  const expenseRows = approvedExpenses.length === 0 ? '<tr><td colspan="4" class="text-center text-muted">暫無已批准報銷</td></tr>' :
+    approvedExpenses.map(e => {
+      const catLabels = { travel:'差旅交通', stationery:'文具用品', meal:'聚餐', custom:'自定義' };
+      return `<tr><td>${catLabels[e.category]||e.category}</td><td class="font-semibold">$${e.amount.toFixed(2)}</td><td>${escapeHtml(e.description||'')}</td><td class="text-sm text-muted">${new Date(e.createdAt).toLocaleDateString('zh-HK')}</td></tr>`;
+    }).join('');
+
+  const pct = limit > 0 ? Math.round(totalSpent / limit * 100) : 0;
+  const isOver = totalSpent > limit && limit > 0;
+
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">📋 ${escapeHtml(u.name)} — 個人明細</h3>
+
+    <h4 class="section-title">🏖️ 假期餘額</h4>
+    <div class="quota-grid mb-4">${leaveBalanceHTML}</div>
+
+    <h4 class="section-title">🏖️ 已放假期明細</h4>
+    <table class="table mb-4"><thead><tr><th>假別</th><th>日期</th><th>天數</th><th>原因</th><th>狀態</th></tr></thead><tbody>${leaveRows}</tbody></table>
+
+    <h4 class="section-title">💰 報銷概況</h4>
+    <div class="grid grid-cols-3 gap-2 mb-3">
+      <div class="detail-field text-center"><div class="df-label">個人年度上限</div><div class="df-value font-bold">$${limit>0?limit.toLocaleString():'未設'}</div></div>
+      <div class="detail-field text-center"><div class="df-label">已批報銷</div><div class="df-value font-bold" style="color:${isOver?'var(--c-danger)':'var(--c-text)'}">$${totalSpent.toLocaleString()}</div></div>
+      <div class="detail-field text-center"><div class="df-label">剩餘額度</div><div class="df-value font-bold" style="color:${(limit-totalSpent)<0?'var(--c-danger)':'var(--c-success)'}">$${limit>0?(limit-totalSpent).toLocaleString():'—'}</div></div>
+    </div>
+    ${limit > 0 ? `<div class="progress-bar mb-4" style="height:10px"><div class="progress-fill progress-${isOver?'danger':pct>80?'warning':'success'}" style="width:${Math.min(pct,100)}%"></div></div><p class="text-xs text-muted mb-4">使用率：${pct}% ${isOver?'⚠️ 已超出個人年度上限！':''}</p>` : ''}
+
+    <h4 class="section-title">💰 已批准報銷明細</h4>
+    <table class="table"><thead><tr><th>類別</th><th>金額</th><th>描述</th><th>日期</th></tr></thead><tbody>${expenseRows}</tbody></table>
+
+    <button class="btn btn-outline mt-4 btn-block" onclick="closeModal()">關閉</button>
+  `);
+}
+
+// ─── 設定同工個人年度報銷上限 ───
+async function editUserExpenseLimit(userId) {
+  const users = await dbGetAll('users');
+  const u = users.find(x => x.id === userId);
+  if (!u) return;
+  const currentLimit = u.expenseLimit || 0;
+  const expenses = await dbGetAll('expenseRequests');
+  const totalSpent = expenses.filter(e => e.userId === userId && e.status === 'approved').reduce((s, e) => s + e.amount, 0);
+
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">💰 設定個人年度報銷上限 — ${escapeHtml(u.name)}</h3>
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <div class="detail-field"><div class="df-label">已批報銷累計</div><div class="df-value font-semibold" style="color:var(--c-danger)">$${totalSpent.toLocaleString()}</div></div>
+      <div class="detail-field"><div class="df-label">目前上限</div><div class="df-value font-semibold">$${currentLimit > 0 ? currentLimit.toLocaleString() : '未設定'}</div></div>
+    </div>
+    <div class="mb-4">
+      <label class="label">年度個人報銷上限 (HKD)</label>
+      <input class="input" type="number" id="expenseLimit" min="0" step="1000" value="${currentLimit}" placeholder="0 = 不設上限">
+    </div>
+    <p class="text-xs text-muted mb-4">💡 設為 0 表示不設上限。管理員審批報銷時，若同工已批報銷累計超過此上限，系統會跳出紅色警告。</p>
+    <div class="flex gap-2">
+      <button class="btn btn-primary btn-block" onclick="saveUserExpenseLimit('${userId}')">儲存</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  `);
+}
+
+async function saveUserExpenseLimit(userId) {
+  const users = await dbGetAll('users');
+  const u = users.find(x => x.id === userId);
+  if (!u) return;
+  const val = parseInt(document.getElementById('expenseLimit').value);
+  u.expenseLimit = isNaN(val) ? 0 : val;
+  await dbPut('users', u);
+  closeModal(); renderPersonnel();
+  showToast(`${u.name} 的個人年度報銷上限已設定為 $${u.expenseLimit.toLocaleString()} ✓`, 'success');
 }
 
 async function editUserLeaveAll(userId) {
@@ -1712,7 +1908,7 @@ dbDelete = async function(storeName, id) {
 async function init() {
   await openDB();
   await seedData();
-  console.log('✅ 教會行政管理系統 v3.4.0 初始化完成');
+  console.log('✅ 教會行政管理系統 v3.5.0 初始化完成');
   console.log('💡 新增：活動編輯保留spent · 刪除清除關聯 · 確認刪除彈窗');
 }
 init();
