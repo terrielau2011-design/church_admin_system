@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>教會行政管理系統 v3.3.0</title>
+<title>教會行政管理系統 v3.4.0</title>
 <style>
 /* ===== Tailwind-lite Reset & Utility ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -155,7 +155,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="login-card">
     <div style="font-size:3rem;margin-bottom:.5rem">⛪</div>
     <h2 class="text-xl font-bold mb-2">教會行政管理系統</h2>
-    <p class="text-muted text-sm mb-4">Church Administration System — v3.3.0</p>
+    <p class="text-muted text-sm mb-4">Church Administration System — v3.4.0</p>
     <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
       <button class="btn btn-primary btn-lg" style="flex:1" onclick="login('staff')">
         <span class="avatar-circle avatar-staff" style="width:40px;height:40px;font-size:1.2rem;margin:0">👤</span>
@@ -196,8 +196,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 
 <script>
 /* ================================================================
-   教會行政管理系統 v3.3.0
-   審批核心邏輯打通 · 假期扣減 · 預算扣減 · 人員分賬明細
+   教會行政管理系統 v3.4.0
+   活動預算增刪查改 · 編輯保留spent · 刪除清除關聯
    ================================================================ */
 
 // ─── 全域狀態 ───
@@ -1469,9 +1469,99 @@ async function showActivityDetail(actId) {
 
 function openActivityModal(){showModal(`<h3 class="text-lg font-bold mb-3">新增活動</h3><div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" placeholder="例如：夏季佈道會"></div><div class="grid grid-cols-2 gap-3 mb-3"><div><label class="label">日期</label><input class="input" type="date" id="actDate"></div><div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="0"></div></div><div class="mb-4"><label class="label">狀態</label><select class="select" id="actStatus"><option value="planned">籌劃中</option><option value="ongoing">進行中</option><option value="completed">已完成</option></select></div><div class="flex gap-2"><button class="btn btn-primary btn-block" onclick="saveActivity()">儲存</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>`);}
 async function saveActivity(){const name=document.getElementById('actName').value.trim();const date=document.getElementById('actDate').value;const budget=parseInt(document.getElementById('actBudget').value)||0;const status=document.getElementById('actStatus').value;if(!name){showToast('請填寫活動名稱','error');return;}await dbPut('activities',{name,date,budget,status,spent:0});closeModal();loadAdminData();showToast('活動已新增 ✓','success');}
-async function editActivity(id){const acts=await dbGetAll('activities');const a=acts.find(x=>x.id===id);if(!a)return;showModal(`<h3 class="text-lg font-bold mb-3">編輯活動</h3><div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" value="${escapeHtml(a.name)}"></div><div class="grid grid-cols-2 gap-3 mb-3"><div><label class="label">日期</label><input class="input" type="date" id="actDate" value="${a.date||''}"></div><div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="${a.budget||0}"></div></div><div class="mb-4"><label class="label">狀態</label><select class="select" id="actStatus"><option value="planned" ${a.status==='planned'?'selected':''}>籌劃中</option><option value="ongoing" ${a.status==='ongoing'?'selected':''}>進行中</option><option value="completed" ${a.status==='completed'?'selected':''}>已完成</option></select></div><div class="flex gap-2"><button class="btn btn-primary" style="flex:1" onclick="updateActivity(${id})">更新</button><button class="btn btn-danger" onclick="deleteActivity(${id});closeModal()">刪除</button><button class="btn btn-outline" onclick="closeModal()">取消</button></div>`);}
-async function updateActivity(id){const name=document.getElementById('actName').value.trim();const date=document.getElementById('actDate').value;const budget=parseInt(document.getElementById('actBudget').value)||0;const status=document.getElementById('actStatus').value;if(!name){showToast('請填寫活動名稱','error');return;}const acts=await dbGetAll('activities');const existing=acts.find(x=>x.id===id);const spent=(existing&&existing.spent!==undefined)?existing.spent:0;await dbPut('activities',{id,name,date,budget,status,spent});closeModal();loadAdminData();showToast('活動已更新 ✓','success');}
-async function deleteActivity(id){await dbDelete('activities',id);loadAdminData();showToast('活動已刪除','success');}
+async function editActivity(id){
+  const acts=await dbGetAll('activities');
+  const a=acts.find(x=>x.id===id);
+  if(!a)return;
+  const spent=a.spent||0;
+  const remain=(a.budget||0)-spent;
+  showModal(`
+    <h3 class="text-lg font-bold mb-3">✏️ 編輯活動</h3>
+    <div class="mb-3"><label class="label">活動名稱</label><input class="input" id="actName" value="${escapeHtml(a.name)}"></div>
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <div><label class="label">日期</label><input class="input" type="date" id="actDate" value="${a.date||''}"></div>
+      <div><label class="label">預算金額 (HKD)</label><input class="input" type="number" id="actBudget" min="0" value="${a.budget||0}"></div>
+    </div>
+    <div class="mb-3"><label class="label">狀態</label>
+      <select class="select" id="actStatus">
+        <option value="planned" ${a.status==='planned'?'selected':''}>籌劃中</option>
+        <option value="ongoing" ${a.status==='ongoing'?'selected':''}>進行中</option>
+        <option value="completed" ${a.status==='completed'?'selected':''}>已完成</option>
+      </select>
+    </div>
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div class="detail-field"><div class="df-label">已批報銷</div><div class="df-value font-semibold" style="color:var(--c-danger)">$${spent.toLocaleString()}</div></div>
+      <div class="detail-field"><div class="df-label">目前剩餘</div><div class="df-value font-semibold" style="color:${remain<0?'var(--c-danger)':'var(--c-success)'}">$${remain.toLocaleString()}</div></div>
+    </div>
+    <p class="text-xs text-muted mb-4">💡 修改預算後，剩餘預算將自動重新計算：新預算 − $${spent.toLocaleString()}（已批報銷）</p>
+    <div class="flex gap-2">
+      <button class="btn btn-primary" style="flex:1" onclick="updateActivity(${id})">💾 儲存更新</button>
+      <button class="btn btn-danger" onclick="confirmDeleteActivity(${id})">🗑️ 刪除活動</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  `);
+}
+
+async function updateActivity(id){
+  const name=document.getElementById('actName').value.trim();
+  const date=document.getElementById('actDate').value;
+  const budget=parseInt(document.getElementById('actBudget').value)||0;
+  const status=document.getElementById('actStatus').value;
+  if(!name){showToast('請填寫活動名稱','error');return;}
+  const acts=await dbGetAll('activities');
+  const existing=acts.find(x=>x.id===id);
+  const spent=(existing&&existing.spent!==undefined)?existing.spent:0;
+  const newRemain=budget-spent;
+  await dbPut('activities',{id,name,date,budget,status,spent});
+  closeModal();loadAdminData();
+  showToast(`活動已更新 ✓ 剩餘預算：$${newRemain.toLocaleString()}`,'success');
+}
+
+async function confirmDeleteActivity(id){
+  const acts=await dbGetAll('activities');
+  const act=acts.find(a=>a.id===id);
+  if(!act)return;
+  showModal(`
+    <h3 class="text-lg font-bold mb-3" style="color:var(--c-danger)">⚠️ 確認刪除活動</h3>
+    <p class="mb-2">您確定要刪除活動 <strong>「${escapeHtml(act.name)}」</strong> 嗎？</p>
+    <p class="text-sm text-muted mb-2">此操作將會：</p>
+    <ul class="text-sm text-muted mb-4" style="padding-left:1.5rem;list-style:disc">
+      <li>永久移除該活動及其預算數據</li>
+      <li>所有關聯此活動的「日常日程」將清除活動關聯</li>
+      <li>所有關聯此活動的「報銷申請」將清除活動關聯</li>
+    </ul>
+    <div class="detail-field mb-4">
+      <div class="df-label">該活動已批報銷</div>
+      <div class="df-value font-semibold" style="color:var(--c-danger)">$${(act.spent||0).toLocaleString()}</div>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-danger" style="flex:1" onclick="deleteActivity(${id})">確認刪除</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  `);
+}
+
+async function deleteActivity(id){
+  // 清除所有關聯此活動的 events 中的 activityId
+  const events=await dbGetAll('events');
+  for(const ev of events){
+    if(ev.activityId===id){
+      ev.activityId=null;
+      await dbPut('events',ev);
+    }
+  }
+  // 清除所有關聯此活動的 expenseRequests 中的 activityId
+  const expenses=await dbGetAll('expenseRequests');
+  for(const exp of expenses){
+    if(exp.activityId===id){
+      exp.activityId=null;
+      await dbPut('expenseRequests',exp);
+    }
+  }
+  // 刪除活動本身
+  await dbDelete('activities',id);
+  closeModal();loadAdminData();showToast('活動已刪除，關聯數據已清除 ✓','success');
+}
 
 // ─── 人員管理 v3 ───
 async function renderPersonnel() {
@@ -1622,8 +1712,8 @@ dbDelete = async function(storeName, id) {
 async function init() {
   await openDB();
   await seedData();
-  console.log('✅ 教會行政管理系統 v3.3.0 初始化完成');
-  console.log('💡 新增：假期扣減聯動 · 預算扣減聯動 · 人員分賬明細');
+  console.log('✅ 教會行政管理系統 v3.4.0 初始化完成');
+  console.log('💡 新增：活動編輯保留spent · 刪除清除關聯 · 確認刪除彈窗');
 }
 init();
 </script>
