@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>教會行政管理系統 v3.1.0</title>
+<title>教會行政管理系統 v3.2.0</title>
 <style>
 /* ===== Tailwind-lite Reset & Utility ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -155,7 +155,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="login-card">
     <div style="font-size:3rem;margin-bottom:.5rem">⛪</div>
     <h2 class="text-xl font-bold mb-2">教會行政管理系統</h2>
-    <p class="text-muted text-sm mb-4">Church Administration System — v3.1.0</p>
+    <p class="text-muted text-sm mb-4">Church Administration System — v3.2.0</p>
     <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
       <button class="btn btn-primary btn-lg" style="flex:1" onclick="login('staff')">
         <span class="avatar-circle avatar-staff" style="width:40px;height:40px;font-size:1.2rem;margin:0">👤</span>
@@ -196,8 +196,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 
 <script>
 /* ================================================================
-   教會行政管理系統 v3.1.0
-   日程欄位嚴謹對接 · 自定義欄位擴展 · 數據分析打通
+   教會行政管理系統 v3.2.0
+   事件標題智能級聯連動 · 自定義標題輸入 · 數據分析打通
    ================================================================ */
 
 // ─── 全域狀態 ───
@@ -635,31 +635,113 @@ async function showDayEvents(dateStr) {
   showModal(`<h3 class="text-lg font-bold mb-3">📅 ${dateStr} 日程</h3>${listHTML}<button class="btn btn-primary btn-sm mt-3" onclick="closeModal();openEventModal('${dateStr}')">＋ 新增事件</button>`);
 }
 
-// ─── 事件表單 (v3.1: 移除 type，加入 3 自定義欄位) ───
+// ─── 事工細分小類（級聯下拉）───
+const MINISTRY_SUBTYPES = {
+  shepherd: [
+    { label: '關顧探訪', value: '關顧探訪' },
+    { label: '電話/面談關懷', value: '電話/面談關懷' },
+    { label: '主日學/講道', value: '主日學/講道' },
+    { label: '團契/小組', value: '團契/小組' },
+    { label: '查經祈禱會', value: '查經祈禱會' }
+  ],
+  admin: [
+    { label: '內部會議', value: '內部會議' },
+    { label: '外部會議', value: '外部會議' },
+    { label: '日常行政', value: '日常行政' },
+    { label: '物資籌備', value: '物資籌備' }
+  ],
+  grow: [
+    { label: '課程進修', value: '課程進修' },
+    { label: '退修會/研討會', value: '退修會/研討會' }
+  ]
+};
+
+// 預設小類值集合（用於判斷是否為自定義標題）
+function getPresetSubtypeValues(cat) {
+  return (MINISTRY_SUBTYPES[cat] || []).map(s => s.value);
+}
+
+// 生成標題下拉 HTML
+function renderTitleSelectHTML(cat, currentTitle) {
+  const subtypes = MINISTRY_SUBTYPES[cat] || [];
+  const isPreset = subtypes.some(s => s.value === currentTitle);
+  let html = `<select class="select" id="eventTitleSelect" onchange="onTitleSelectChange('${cat}')">`;
+  html += `<option value="">— 請選擇事工細分 —</option>`;
+  subtypes.forEach(s => {
+    html += `<option value="${s.value}" ${currentTitle === s.value ? 'selected' : ''}>${s.label}</option>`;
+  });
+  html += `<option value="__custom__" ${(!isPreset && currentTitle) ? 'selected' : ''}>📝 其他（自行填寫）</option>`;
+  html += `</select>`;
+  return html;
+}
+
+function onTitleSelectChange(cat) {
+  const sel = document.getElementById('eventTitleSelect');
+  const customWrap = document.getElementById('customTitleWrap');
+  const customInput = document.getElementById('eventTitleCustom');
+  if (sel && customWrap && customInput) {
+    if (sel.value === '__custom__') {
+      customWrap.classList.remove('hidden');
+      customInput.focus();
+    } else {
+      customWrap.classList.add('hidden');
+    }
+  }
+}
+
+// 取得目前事件標題值（從下拉或自定義）
+function getEventTitleValue() {
+  const sel = document.getElementById('eventTitleSelect');
+  if (sel && sel.value && sel.value !== '__custom__') {
+    return sel.value;
+  }
+  const customInput = document.getElementById('eventTitleCustom');
+  if (customInput) return customInput.value.trim();
+  return '';
+}
+
+// 切換事工分類 Radio 時觸發
+function onCatRadioChange(cat) {
+  const titleArea = document.getElementById('titleSelectArea');
+  if (titleArea) {
+    titleArea.innerHTML = renderTitleSelectHTML(cat, '');
+  }
+  const customWrap = document.getElementById('customTitleWrap');
+  if (customWrap) customWrap.classList.add('hidden');
+}
+
+// ─── 事件表單 (v3.2: 級聯標題下拉) ───
 async function openEventModal(prefillDate) {
   const activities = await dbGetAll('activities');
   const actOpts = '<option value="">（無）</option>' + activities.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+
+  // Radio cards with onclick that calls onCatRadioChange
   const catRadios = Object.entries(MINISTRY_CATEGORIES).map(([key, val]) =>
-    `<label class="radio-card ${key==='shepherd'?'selected':''}" data-cat="${key}" onclick="selectRadio(this)"><input type="radio" name="ministryCategory" value="${key}" ${key==='shepherd'?'checked':''}>${val.label}<div class="text-xs text-muted mt-1">${val.examples}</div></label>`
+    `<label class="radio-card ${key==='shepherd'?'selected':''}" data-cat="${key}" onclick="selectRadioCat(this, '${key}')"><input type="radio" name="ministryCategory" value="${key}" ${key==='shepherd'?'checked':''}>${val.label}<div class="text-xs text-muted mt-1">${val.examples}</div></label>`
   ).join('');
+
+  const defaultCat = 'shepherd';
 
   showModal(`
     <h3 class="text-lg font-bold mb-3">新增事件</h3>
 
     <div class="mb-3">
+      <label class="label">事工分類（請先選擇，下方標題將自動聯動）</label>
+      <div class="radio-group" id="ministryRadioGroup">${catRadios}</div>
+    </div>
+
+    <div class="mb-3">
       <label class="label">事件標題</label>
-      <input class="input" id="eventTitle" placeholder="例如：主日崇拜">
+      <div id="titleSelectArea">${renderTitleSelectHTML(defaultCat, '')}</div>
+      <div id="customTitleWrap" class="hidden mt-2">
+        <input class="input" id="eventTitleCustom" placeholder="請輸入自定義標題...">
+      </div>
     </div>
 
     <div class="grid grid-cols-3 gap-3 mb-3">
       <div><label class="label">日期</label><input class="input" type="date" id="eventDate" value="${prefillDate||''}"></div>
       <div><label class="label">時間</label><input class="input" type="time" id="eventTime" value="10:00"></div>
       <div><label class="label">預計工時 (小時)</label><input class="input" type="number" id="eventHours" min="0.5" max="24" step="0.5" value="2"></div>
-    </div>
-
-    <div class="mb-3">
-      <label class="label">事工分類（三維度分配）</label>
-      <div class="radio-group" id="ministryRadioGroup">${catRadios}</div>
     </div>
 
     <div class="mb-3">
@@ -691,13 +773,19 @@ async function openEventModal(prefillDate) {
   `);
 }
 
+function selectRadioCat(el, cat) {
+  el.parentElement.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected'); el.querySelector('input').checked = true;
+  onCatRadioChange(cat);
+}
+
 function selectRadio(el) {
   el.parentElement.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected'); el.querySelector('input').checked = true;
 }
 
 async function saveEvent() {
-  const title = document.getElementById('eventTitle').value.trim();
+  const title = getEventTitleValue();
   const date = document.getElementById('eventDate').value;
   const time = document.getElementById('eventTime').value;
   const hours = parseFloat(document.getElementById('eventHours').value) || 2;
@@ -714,33 +802,42 @@ async function saveEvent() {
   closeModal(); loadStaffData(); showToast('事件已新增 ✓', 'success');
 }
 
-// ─── 編輯事件 (v3.1: 含自定義欄位) ───
+// ─── 編輯事件 (v3.2: 級聯標題下拉 + 正確回填) ───
 async function editEvent(id) {
   const [events, activities] = await Promise.all([dbGetAll('events'), dbGetAll('activities')]);
   const ev = events.find(e => e.id === id);
   if (!ev) return;
   const actOpts = '<option value="">（無）</option>' + activities.map(a => `<option value="${a.id}" ${ev.activityId===a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
+
+  const cat = ev.ministryCategory || 'shepherd';
   const catRadios = Object.entries(MINISTRY_CATEGORIES).map(([key, val]) =>
-    `<label class="radio-card ${key===ev.ministryCategory?'selected':''}" data-cat="${key}" onclick="selectRadio(this)"><input type="radio" name="ministryCategory" value="${key}" ${key===ev.ministryCategory?'checked':''}>${val.label}<div class="text-xs text-muted mt-1">${val.examples}</div></label>`
+    `<label class="radio-card ${key===cat?'selected':''}" data-cat="${key}" onclick="selectRadioCat(this, '${key}')"><input type="radio" name="ministryCategory" value="${key}" ${key===cat?'checked':''}>${val.label}<div class="text-xs text-muted mt-1">${val.examples}</div></label>`
   ).join('');
+
+  const presetValues = getPresetSubtypeValues(cat);
+  const isPreset = presetValues.includes(ev.title);
+  const showCustom = !isPreset && ev.title;
 
   showModal(`
     <h3 class="text-lg font-bold mb-3">編輯事件</h3>
 
     <div class="mb-3">
+      <label class="label">事工分類（切換分類將重置標題選項）</label>
+      <div class="radio-group" id="ministryRadioGroup">${catRadios}</div>
+    </div>
+
+    <div class="mb-3">
       <label class="label">事件標題</label>
-      <input class="input" id="eventTitle" value="${escapeHtml(ev.title)}">
+      <div id="titleSelectArea">${renderTitleSelectHTML(cat, ev.title)}</div>
+      <div id="customTitleWrap" class="mt-2 ${showCustom ? '' : 'hidden'}">
+        <input class="input" id="eventTitleCustom" placeholder="請輸入自定義標題..." value="${showCustom ? escapeHtml(ev.title) : ''}">
+      </div>
     </div>
 
     <div class="grid grid-cols-3 gap-3 mb-3">
       <div><label class="label">日期</label><input class="input" type="date" id="eventDate" value="${ev.date}"></div>
       <div><label class="label">時間</label><input class="input" type="time" id="eventTime" value="${ev.time||''}"></div>
       <div><label class="label">預計工時</label><input class="input" type="number" id="eventHours" min="0.5" max="24" step="0.5" value="${ev.hours||2}"></div>
-    </div>
-
-    <div class="mb-3">
-      <label class="label">事工分類</label>
-      <div class="radio-group" id="ministryRadioGroup">${catRadios}</div>
     </div>
 
     <div class="mb-3">
@@ -774,7 +871,7 @@ async function editEvent(id) {
 }
 
 async function updateEvent(id) {
-  const title = document.getElementById('eventTitle').value.trim();
+  const title = getEventTitleValue();
   const date = document.getElementById('eventDate').value;
   const time = document.getElementById('eventTime').value;
   const hours = parseFloat(document.getElementById('eventHours').value) || 2;
@@ -1336,8 +1433,8 @@ dbDelete = async function(storeName, id) {
 async function init() {
   await openDB();
   await seedData();
-  console.log('✅ 教會行政管理系統 v3.1.0 初始化完成');
-  console.log('💡 新增：三維度分類嚴謹對接 · 3個自定義欄位 · 事件詳情面板');
+  console.log('✅ 教會行政管理系統 v3.2.0 初始化完成');
+  console.log('💡 新增：事件標題級聯下拉 · 三維度細分選項 · 自定義標題輸入');
 }
 init();
 </script>
